@@ -3,7 +3,7 @@ import pandas as pd
 import anndata as an
 import os
 
-def assemble_anndata(counts_dir, output_path):
+def assemble_anndata(counts_dir, output_path, output_txt=None):
     print(f'Assembling AnnData from counts in {counts_dir} to {output_path}')
 
     # list all files in the directory
@@ -54,13 +54,22 @@ def assemble_anndata(counts_dir, output_path):
     adata = an.AnnData(X=df.values.T, obs=obs, var=var)
     adata.write(output_path)
 
+    if output_txt is not None:
+        # reindex to gene names using mapping from var
+        df.index = var.loc[df.index, 'Gene_name']
+        # drop nan indices
+        df = df[~df.index.isna()]
+        print(f"Keeping {df.shape[0]} genes for txt output")
+        df.to_csv(output_txt, sep='\t')
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('counts_dir', type=str)
-    parser.add_argument('output_path', type=str)
+    parser.add_argument('output_h5ad', type=str)
+    parser.add_argument('--output_txt', type=str, default=None)
     args = parser.parse_args()
 
-    assemble_anndata(args.counts_dir, args.output_path)
+    assemble_anndata(args.counts_dir, args.output_h5ad, args.output_txt)
 
 if __name__ == '__main__':
     main()

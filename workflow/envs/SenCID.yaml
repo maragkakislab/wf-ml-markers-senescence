@@ -1,0 +1,9 @@
+name: SenCID
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python==3.6.15
+  - pip
+  - pip:  
+    - git+https://github.com/katarinagresova/SenCID.git@dev # fork of original SenCID repo with enhanced input/output file handling

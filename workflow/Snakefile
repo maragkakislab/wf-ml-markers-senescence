@@ -14,18 +14,25 @@ DATA_DIR = config['DATA_DIR']
 ANALYSIS_DIR = config['ANALYSIS_DIR']
 PLOTS_DIR = config['PLOTS_DIR']
 
+# Load rules
+include: "rules/sencid.smk"
+
 rule all:
     input:
-        os.path.join(ANALYSIS_DIR, "counts.h5ad")
+        os.path.join(ANALYSIS_DIR, "counts.h5ad"),
+        os.path.join(ANALYSIS_DIR, "counts_SenCID_results.txt")
 
 rule assemble_anndata:
     input:
         counts_dir = os.path.join(DATA_DIR, "bulkRNA")
     output:
-        anndata = os.path.join(ANALYSIS_DIR, "counts.h5ad")
+        anndata = os.path.join(ANALYSIS_DIR, "counts.h5ad"),
+        # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
+        # index is Gene_name -> rows with NaNs are removed
+        txt = os.path.join(ANALYSIS_DIR, "counts.txt")
     conda:
         "envs/data.yaml"
     shell:
         """
-        python workflow/scripts/assemble_anndata.py {input.counts_dir} {output.anndata}
+        python workflow/scripts/assemble_anndata.py {input.counts_dir} {output.anndata} --output_txt {output.txt}
         """
