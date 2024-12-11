@@ -1,0 +1,3 @@
+DATA_DIR: "data"
+ANALYSIS_DIR: "analysis"
+PLOTS_DIR: "plots"

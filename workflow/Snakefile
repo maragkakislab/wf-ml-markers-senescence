@@ -1,0 +1,31 @@
+import sys
+import os
+
+# Load config
+if "--configfile" in sys.argv:
+    i = sys.argv.index("--configfile")
+    config_path = sys.argv[i + 1]
+    configfile: config_path
+else:
+    config_path = "config/config.yml"
+    configfile: config_path
+
+DATA_DIR = config['DATA_DIR']
+ANALYSIS_DIR = config['ANALYSIS_DIR']
+PLOTS_DIR = config['PLOTS_DIR']
+
+rule all:
+    input:
+        os.path.join(ANALYSIS_DIR, "counts.h5ad")
+
+rule assemble_anndata:
+    input:
+        counts_dir = os.path.join(DATA_DIR, "bulkRNA")
+    output:
+        anndata = os.path.join(ANALYSIS_DIR, "counts.h5ad")
+    conda:
+        "envs/data.yaml"
+    shell:
+        """
+        python workflow/scripts/assemble_anndata.py {input.counts_dir} {output.anndata}
+        """
