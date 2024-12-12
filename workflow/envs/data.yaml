@@ -6,3 +6,5 @@ dependencies:
   - python==3.11.10
   - pandas
   - anndata
+  - seaborn
+  - scikit-learn

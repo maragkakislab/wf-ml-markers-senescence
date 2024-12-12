@@ -20,7 +20,8 @@ include: "rules/sencid.smk"
 rule all:
     input:
         os.path.join(ANALYSIS_DIR, "counts.h5ad"),
-        os.path.join(ANALYSIS_DIR, "counts_SenCID_results.txt")
+        os.path.join(ANALYSIS_DIR, "counts_SenCID_results.txt"),
+        os.path.join(PLOTS_DIR, "SenCID_predictions.pdf")
 
 rule assemble_anndata:
     input:

@@ -46,6 +46,7 @@ def assemble_anndata(counts_dir, output_path, output_txt=None):
         }
 
     obs = pd.DataFrame([obs_from_col_name(col) for col in df.columns])
+    obs['label'] = obs.apply(lambda x: 0 if x['treatment'] in ['P', 'EV'] else 1, axis=1)
     obs.index = obs.apply(lambda x: f"{x['cell_type']}_{x['treatment']}_{x['replicate']}", axis=1)
 
     var = pd.concat(var)
