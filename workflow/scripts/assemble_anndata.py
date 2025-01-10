@@ -16,6 +16,10 @@ def assemble_anndata(counts_dir, output_path, output_txt=None):
     var = []
     for f in files:
         df = pd.read_csv(os.path.join(counts_dir, f), sep='\t', index_col=0, low_memory=False)
+
+        # remove white spaces from column names
+        df.columns = df.columns.str.strip()
+
         counts_cols = [col for col in df.columns if (col.split('.')[-1] in ['count', 'counts'])]
         data[f] = df[counts_cols]
         var.append(df[['Gene_name', 'Gene_Length']])
@@ -51,6 +55,9 @@ def assemble_anndata(counts_dir, output_path, output_txt=None):
 
     var = pd.concat(var)
     var = var[~var.index.duplicated(keep='first')]
+
+    # reorder rows in df to match var
+    df = df.reindex(var.index)
 
     adata = an.AnnData(X=df.values.T, obs=obs, var=var)
     adata.write(output_path)
