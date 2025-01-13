@@ -1,5 +1,7 @@
 DATA_DIR: "data/"
 ANALYSIS_DIR: "analysis/"
 PLOTS_DIR: "plots/"
+LOG_DIR: "logs/"
+LOG_LEVEL: "DEBUG"
 
 CELL_TYPES: ["BJ", "BMMSC", "HCAEC", "HEKn", "HeMn", "HSAEC", "HUVEC", "HVSMC", "Myoblasts", "NHA", "NHO", "PBMCs", "prAD", "WI38"]
