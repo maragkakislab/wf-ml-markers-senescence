@@ -14,6 +14,8 @@ DATA_DIR = config['DATA_DIR']
 ANALYSIS_DIR = config['ANALYSIS_DIR']
 PLOTS_DIR = config['PLOTS_DIR']
 
+CELL_TYPES = config['CELL_TYPES']
+
 # Load rules
 include: "rules/sencid.smk"
 
@@ -25,7 +27,7 @@ rule all:
 
 rule assemble_anndata:
     input:
-        counts_dir = os.path.join(DATA_DIR, "bulkRNA")
+        count_files = expand(os.path.join(DATA_DIR, "3_{cell_type}_all_results_annot.txt"), cell_type=CELL_TYPES)
     output:
         anndata = os.path.join(ANALYSIS_DIR, "counts.h5ad"),
         # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
@@ -35,5 +37,5 @@ rule assemble_anndata:
         "envs/data.yaml"
     shell:
         """
-        python workflow/scripts/assemble_anndata.py {input.counts_dir} {output.anndata} --output_txt {output.txt}
+        python workflow/scripts/assemble_anndata.py {input.count_files} --output_h5ad {output.anndata} --output_txt {output.txt}
         """
