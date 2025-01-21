@@ -8,3 +8,4 @@ dependencies:
   - anndata
   - seaborn
   - scikit-learn
+  - scanpy
