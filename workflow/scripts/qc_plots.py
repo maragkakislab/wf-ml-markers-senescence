@@ -47,6 +47,9 @@ def calculate_qc_metrics(adata, gene_name_col='Gene_name', species='mouse'):
         adata, qc_vars=["mt", "ribo", "hb"], inplace=True, log1p=True
     )
 
+    logging.debug(f"adata.obs: {adata.obs.columns}")
+    logging.debug(f"adata.var: {adata.var.columns}")
+
     logging.debug(f"mitochondrial genes: {adata.var['mt'].sum()}")
     logging.debug(f"ribosomal genes: {adata.var['ribo'].sum()}")
     logging.debug(f"hemoglobin genes: {adata.var['hb'].sum()}")
