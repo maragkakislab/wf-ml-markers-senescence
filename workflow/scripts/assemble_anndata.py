@@ -9,7 +9,7 @@ The counts files are expected to have the following format:
 - First column is the gene symbol.
 - Columns containing counts have names ending with 'count' or 'counts'.
 - Column names contain information about the cell type, treatment and replicate in the following format:
-    *_{cell_type}_{treatment}_{replicate}.count[s]
+    *_{celltype}_{treatment}_{replicate}.count[s]
     regex: .*_(\w+)_(\w+)_(\d+).count[s]*
 - Files additionally contain columns 'Gene_name' and 'Gene_Length'.
 
@@ -17,8 +17,8 @@ The script does the following:
 - Reads all the input files.
 - Concatenates the counts from all files and fills missing values with 0.
 - Creates following observations for AnnData:
-    * index: sample name in the format {cell_type}_{treatment}_{replicate}.
-    * `cell_type`: cell type of the sample.
+    * index: sample name in the format {celltype}_{treatment}_{replicate}.
+    * `celltype`: cell type of the sample.
     * `treatment`: treatment of the sample.
     * `replicate`: replicate number.
     * `label`: 0 if the sample is control, 1 if the sample is treatment.
@@ -85,12 +85,12 @@ def assemble_anndata(input_files, output_path, output_txt=None):
     def obs_from_col_name(col_name):
         parts = col_name.split('_')
         # indexing from the back, because some samples have additional prefixes
-        cell_type = parts[-3]
+        celltype = parts[-3]
         treatment = parts[-2]
         replicate = parts[-1].split('.')[0]
 
         return {
-            'cell_type': cell_type,
+            'celltype': celltype,
             'treatment': treatment,
             'replicate': replicate
         }
@@ -101,10 +101,10 @@ def assemble_anndata(input_files, output_path, output_txt=None):
     obs['label'] = obs.apply(lambda x: 0 if x['treatment'] in ['P', 'EV'] else 1, axis=1)
     logging.debug(f"Created observations with {obs.shape[0]} samples.")
     logging.debug(f"Control samples: {obs[obs['label'] == 0].shape[0]}. Treatment samples: {obs[obs['label'] == 1].shape[0]}.")
-    logging.debug(f"Cell types: {obs['cell_type'].unique()}. Treatments: {obs['treatment'].unique()}. Replicates: {obs['replicate'].unique()}.")
+    logging.debug(f"Cell types: {obs['celltype'].unique()}. Treatments: {obs['treatment'].unique()}. Replicates: {obs['replicate'].unique()}.")
 
     # create sample name from cell type, treatment and replicate
-    obs.index = obs.apply(lambda x: f"{x['cell_type']}_{x['treatment']}_{x['replicate']}", axis=1)
+    obs.index = obs.apply(lambda x: f"{x['celltype']}_{x['treatment']}_{x['replicate']}", axis=1)
 
     var = pd.concat(var)
     var = var[~var.index.duplicated(keep='first')]
