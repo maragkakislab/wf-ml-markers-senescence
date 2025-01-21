@@ -144,6 +144,7 @@ def main():
     args = parser.parse_args()
 
     set_logging(args.log, args.log_level)
+    logging.debug(f"Command line arguments: {args}")
 
     assemble_anndata(args.input_files, args.output_h5ad, args.output_txt)
 
