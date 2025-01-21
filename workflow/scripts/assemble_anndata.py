@@ -33,11 +33,13 @@ Additionally, if `--output_txt` is provided, the script writes the counts to a t
 Only genes with non-NaN gene names are kept. This output is used for a downstream analysis with SenCID tool.
 """
 
-import argparse
 import pandas as pd
 import anndata as an
 import logging
 import os
+from scipy.sparse import csr_matrix
+
+from utils import set_logging, get_default_parser
 
 def assemble_anndata(input_files, output_path, output_txt=None):
 
@@ -116,6 +118,11 @@ def assemble_anndata(input_files, output_path, output_txt=None):
     # assemble AnnData object from counts, metadata about samples and genes
     adata = an.AnnData(X=df.values.T, obs=obs, var=var)
     logging.debug(f"Created AnnData object with shape {adata.X.shape}.")
+
+    # make adata.X sparse
+    adata.X = csr_matrix(adata.X)
+    logging.debug(f"Converted counts to sparse matrix.")
+
     adata.write(output_path)
     logging.info(f"Saved AnnData object to {output_path}")
 
@@ -130,22 +137,14 @@ def assemble_anndata(input_files, output_path, output_txt=None):
         logging.info(f"Saved gene counts to {output_txt}")
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = get_default_parser(__doc__)
     parser.add_argument('input_files', type=str, nargs='+', help='Input counts files')
     parser.add_argument('--output_h5ad', type=str, required=True, help='Output h5ad file')
     parser.add_argument('--output_txt', type=str, default=None, help='Output txt file')
-    parser.add_argument('--log', type=str, default="log.log", help='Log file')
-    parser.add_argument('--log-level', type=str, default="INFO", help='Log level')
     args = parser.parse_args()
 
-    logging.basicConfig(
-        level=args.log_level, 
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(args.log),
-            logging.StreamHandler()
-        ]
-    )
+    set_logging(args.log, args.log_level)
+
     assemble_anndata(args.input_files, args.output_h5ad, args.output_txt)
 
 if __name__ == '__main__':
