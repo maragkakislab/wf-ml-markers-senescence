@@ -1,3 +1,6 @@
+from snakemake.utils import min_version
+min_version("6.0")
+
 import sys
 import os
 
@@ -18,13 +21,16 @@ LOG_LEVEL = config['LOG_LEVEL']
 
 CELL_TYPES = config['CELL_TYPES']
 
-# Load rules
-include: "rules/sencid.smk"
+module sencid_workflow:
+    snakefile: github("maragkakislab/wf-SenCID", path="workflow/Snakefile", branch="module")
+    config: config['SenCID']
+
+use rule * from sencid_workflow as sencid_*
 
 rule all:
     input:
+        os.path.join(ANALYSIS_DIR, "counts_SenCID_results.csv")
         os.path.join(ANALYSIS_DIR, "counts.h5ad"),
-        os.path.join(ANALYSIS_DIR, "counts_SenCID_results.txt"),
         os.path.join(PLOTS_DIR, "SenCID_predictions.pdf"),
         os.path.join(PLOTS_DIR, "library_size.pdf"),
         os.path.join(PLOTS_DIR, "mito_plot.pdf"),

@@ -5,3 +5,8 @@ LOG_DIR: "logs/"
 LOG_LEVEL: "DEBUG"
 
 CELL_TYPES: ["BJ", "BMMSC", "HCAEC", "HEKn", "HeMn", "HSAEC", "HUVEC", "HVSMC", "Myoblasts", "NHA", "NHO", "PBMCs", "prAD", "WI38"]
+
+SenCID:
+  ANALYSIS_DIR: "analysis/"
+  SENCID_SAMPLES: ["counts"]
+  SENCID_DENOISING: 'f'
