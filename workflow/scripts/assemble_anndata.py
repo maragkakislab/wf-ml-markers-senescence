@@ -60,6 +60,8 @@ def assemble_anndata(input_files, output_path, output_txt=None):
 
         # remove white spaces from column names
         df.columns = df.columns.str.strip()
+        # remove white spaces from gene names
+        df.index = df.index.str.strip()
 
         # get columns with raw counts
         counts_cols = [col for col in df.columns if (col.split('.')[-1] in ['count', 'counts'])]
