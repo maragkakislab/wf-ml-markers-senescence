@@ -33,12 +33,12 @@ include: "rules/data.smk"
 rule all:
     input:
         # SenCID results
-        expand(os.path.join(ANALYSIS_DIR, "{counts_file}_SenCID_results.csv"), counts_file=["SenCat_raw_counts"]),
+        expand(os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"), counts_file=["SenCat"]),
         # plots on raw SenCat counts
-        expand(os.path.join(PLOTS_DIR, "{counts_file}_library_size.pdf"), counts_file=["SenCat_raw_counts"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file}_mito_plot.pdf"), counts_file=["SenCat_raw_counts"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file}_ribo_plot.pdf"), counts_file=["SenCat_raw_counts"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file}_hb_plot.pdf"), counts_file=["SenCat_raw_counts"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"), counts_file=["SenCat"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"), counts_file=["SenCat"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.ribo_plot.pdf"), counts_file=["SenCat"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.hb_plot.pdf"), counts_file=["SenCat"]),
         # classification results
         os.path.join(ANALYSIS_DIR, "classification_results.txt"),
         os.path.join(ANALYSIS_DIR, "common_features.txt"),
@@ -46,9 +46,9 @@ rule all:
 
 use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predictions with:
     output:
-        rec = os.path.join(ANALYSIS_DIR, "{counts_file}_SenCID_results.csv")
+        rec = os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv")
     input: 
-        txt = os.path.join(ANALYSIS_DIR, "{counts_file}_for_SenCID.txt")
+        txt = os.path.join(ANALYSIS_DIR, "{counts_file}.for_SenCID.txt")
     params:
         denoising = False
 
@@ -56,12 +56,12 @@ rule qc_plots:
     input:
         anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
     output:
-        library_size_plot = os.path.join(PLOTS_DIR, "{counts_file}_library_size.pdf"),
-        mito_plot = os.path.join(PLOTS_DIR, "{counts_file}_mito_plot.pdf"),
-        ribo_plot = os.path.join(PLOTS_DIR, "{counts_file}_ribo_plot.pdf"),
-        hb_plot = os.path.join(PLOTS_DIR, "{counts_file}_hb_plot.pdf"),
+        library_size_plot = os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"),
+        mito_plot = os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"),
+        ribo_plot = os.path.join(PLOTS_DIR, "{counts_file}.ribo_plot.pdf"),
+        hb_plot = os.path.join(PLOTS_DIR, "{counts_file}.hb_plot.pdf"),
     log:
-        os.path.join(LOG_DIR, "{counts_file}_qc_plots.log")
+        os.path.join(LOG_DIR, "{counts_file}.qc_plots.log")
     conda:
         "envs/data.yaml"
     shell:
@@ -79,13 +79,13 @@ rule qc_plots:
 
 rule ml_classifier:
     input:
-        anndata = os.path.join(ANALYSIS_DIR, "normlized_SenCat_raw_counts.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "SenCat.normalized.h5ad"),
     output:
         results_csv = os.path.join(ANALYSIS_DIR, "classification_results.txt"),
         common_features_csv = os.path.join(ANALYSIS_DIR, "common_features.txt"),
         feat_select_plot = os.path.join(PLOTS_DIR, "feat_select_plot.pdf"),
     params:
-        importance_threshold = 0.01
+        importance_threshold = 0.001
     log:
         os.path.join(LOG_DIR, "ml_classifier.log")
     conda:
