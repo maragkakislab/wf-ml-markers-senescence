@@ -38,8 +38,24 @@ import anndata as an
 import logging
 import os
 from scipy.sparse import csr_matrix
+import argparse
 
-from utils import set_logging, get_default_parser
+_log = logging.getLogger("assemble_anndata")
+
+def set_logging(log_file, log_level):
+    _log.setLevel(log_level)
+    # create file handler that logs debug and higher level messages
+    fh = logging.FileHandler(log_file)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    fh.setFormatter(formatter)
+    # add the handlers to logger
+    _log.addHandler(ch)
+    _log.addHandler(fh)
 
 def assemble_anndata(input_files, output_path, output_txt=None):
 
@@ -48,7 +64,7 @@ def assemble_anndata(input_files, output_path, output_txt=None):
     var = []
     for file in input_files:
 
-        logging.info(f"Reading {file}")
+        _log.info(f"Reading {file}")
 
         if not os.path.isfile(file):
             raise ValueError(f"File {file} not found")
@@ -56,7 +72,7 @@ def assemble_anndata(input_files, output_path, output_txt=None):
             raise ValueError(f"File {file} is not a txt file")
 
         df = pd.read_csv(file, sep='\t', index_col=0, low_memory=False)
-        logging.debug(f"Read {df.shape[0]} genes and {df.shape[1]} columns")
+        _log.debug(f"Read {df.shape[0]} genes and {df.shape[1]} columns")
 
         # remove white spaces from column names
         df.columns = df.columns.str.strip()
@@ -67,7 +83,7 @@ def assemble_anndata(input_files, output_path, output_txt=None):
         counts_cols = [col for col in df.columns if (col.split('.')[-1] in ['count', 'counts'])]
         if len(counts_cols) == 0:
             raise ValueError(f"No count columns found in {file}")
-        logging.debug(f"Found {len(counts_cols)} count columns: {counts_cols}")
+        _log.debug(f"Found {len(counts_cols)} count columns: {counts_cols}")
         data[file] = df[counts_cols]
 
         var.append(df[['Gene_name', 'Gene_Length']])
@@ -76,7 +92,7 @@ def assemble_anndata(input_files, output_path, output_txt=None):
     all_indices = set()
     for k, v in data.items():
         all_indices = all_indices.union(set(v.index))
-    logging.info(f"Found {len(all_indices)} unique genes in all files combined.")
+    _log.info(f"Found {len(all_indices)} unique genes in all files combined.")
 
     # fill missing counts with 0
     for k, v in data.items():
@@ -84,7 +100,7 @@ def assemble_anndata(input_files, output_path, output_txt=None):
 
     # concatenate all dataframes with counts
     df = pd.concat(data.values(), axis=1)
-    logging.info(f"Concatenated counts from {len(data)} files. Final shape: {df.shape}.")
+    _log.info(f"Concatenated counts from {len(data)} files. Final shape: {df.shape}.")
     
     def obs_from_col_name(col_name):
         parts = col_name.split('_')
@@ -103,30 +119,30 @@ def assemble_anndata(input_files, output_path, output_txt=None):
     obs = pd.DataFrame([obs_from_col_name(col) for col in df.columns])
     # create label column based on treatment - P and EV are control, all others are treatment
     obs['label'] = obs.apply(lambda x: 0 if x['treatment'] in ['P', 'EV'] else 1, axis=1)
-    logging.debug(f"Created observations with {obs.shape[0]} samples.")
-    logging.debug(f"Control samples: {obs[obs['label'] == 0].shape[0]}. Treatment samples: {obs[obs['label'] == 1].shape[0]}.")
-    logging.debug(f"Cell types: {obs['celltype'].unique()}. Treatments: {obs['treatment'].unique()}. Replicates: {obs['replicate'].unique()}.")
+    _log.debug(f"Created observations with {obs.shape[0]} samples.")
+    _log.debug(f"Control samples: {obs[obs['label'] == 0].shape[0]}. Treatment samples: {obs[obs['label'] == 1].shape[0]}.")
+    _log.debug(f"Cell types: {obs['celltype'].unique()}. Treatments: {obs['treatment'].unique()}. Replicates: {obs['replicate'].unique()}.")
 
     # create sample name from cell type, treatment and replicate
     obs.index = obs.apply(lambda x: f"{x['celltype']}_{x['treatment']}_{x['replicate']}", axis=1)
 
     var = pd.concat(var)
     var = var[~var.index.duplicated(keep='first')]
-    logging.debug(f"Created variables with {var.shape[0]} genes.")
+    _log.debug(f"Created variables with {var.shape[0]} genes.")
 
     # reorder rows in df to match var
     df = df.reindex(var.index)
 
     # assemble AnnData object from counts, metadata about samples and genes
     adata = an.AnnData(X=df.values.T, obs=obs, var=var)
-    logging.debug(f"Created AnnData object with shape {adata.X.shape}.")
+    _log.debug(f"Created AnnData object with shape {adata.X.shape}.")
 
     # make adata.X sparse
     adata.X = csr_matrix(adata.X)
-    logging.debug(f"Converted counts to sparse matrix.")
+    _log.debug(f"Converted counts to sparse matrix.")
 
     adata.write(output_path)
-    logging.info(f"Saved AnnData object to {output_path}")
+    _log.info(f"Saved AnnData object to {output_path}")
 
     # write txt output if requested
     if output_txt is not None:
@@ -134,19 +150,21 @@ def assemble_anndata(input_files, output_path, output_txt=None):
         df.index = var.loc[df.index, 'Gene_name']
         # drop nan indices
         df = df[~df.index.isna()]
-        logging.debug(f"Kept {df.shape[0]} genes with non-NaN gene names.")
+        _log.debug(f"Kept {df.shape[0]} genes with non-NaN gene names.")
         df.to_csv(output_txt, sep='\t')
-        logging.info(f"Saved gene counts to {output_txt}")
+        _log.info(f"Saved gene counts to {output_txt}")
 
 def main():
-    parser = get_default_parser(__doc__)
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input_files', type=str, nargs='+', help='Input counts files')
     parser.add_argument('--output_h5ad', type=str, required=True, help='Output h5ad file')
     parser.add_argument('--output_txt', type=str, default=None, help='Output txt file')
+    parser.add_argument('--log', type=str, default="log.log", help='Log file')
+    parser.add_argument('--log-level', type=str, default="INFO", help='Log level')
     args = parser.parse_args()
 
     set_logging(args.log, args.log_level)
-    logging.debug(f"Command line arguments: {args}")
+    _log.debug(f"Command line arguments: {args}")
 
     assemble_anndata(args.input_files, args.output_h5ad, args.output_txt)
 
