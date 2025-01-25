@@ -11,7 +11,7 @@ def plot_results(results, save_pdf, label_col='is_sen', score_col='score'):
     fig, axs = plt.subplots(1, 2, figsize=(7, 3), dpi=600)
 
     precision, recall, _ = precision_recall_curve(results[label_col], results[score_col])
-    axs[0].plot(recall, precision, label=f'SenCID AUC: {round(auc(recall, precision), 3)}')
+    axs[0].plot(recall, precision, label=f'AUC: {round(auc(recall, precision), 3)}')
     axs[0].set_xlabel('Recall', fontsize=12)
     axs[0].set_ylabel('Precision', fontsize=12)
     # add random prediction score
@@ -25,7 +25,7 @@ def plot_results(results, save_pdf, label_col='is_sen', score_col='score'):
     sns.stripplot(x=label_col, y=score_col, data=results, jitter=True, color='black', alpha=0.5, ax=axs[1])
 
     axs[1].set_xlabel('Senescent', fontsize=12)
-    axs[1].set_ylabel('SenCID Score', fontsize=12)
+    axs[1].set_ylabel('Prediction', fontsize=12)
 
     plt.tight_layout()
     plt.savefig(save_pdf, dpi=600)

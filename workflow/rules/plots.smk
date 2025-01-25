@@ -25,9 +25,9 @@ rule qc_plots:
 
 rule sencid_preds_plots:
     input:
-        rec = os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"),
+        rec = os.path.join(ANALYSIS_DIR, "{results}.csv"),
     output:
-        pdf = os.path.join(PLOTS_DIR, "{counts_file}.SenCID_predictions.pdf")
+        pdf = os.path.join(PLOTS_DIR, "{results}.pdf")
     conda:
         "../envs/data.yaml"
     shell:

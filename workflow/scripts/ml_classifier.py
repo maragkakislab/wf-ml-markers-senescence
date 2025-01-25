@@ -175,11 +175,11 @@ def main():
 
     if args.results_csv is not None:
         _log.info(f"Saving results to {args.results_csv}")
-        result.to_csv(args.results_csv, sep='\t')
+        result.to_csv(args.results_csv)
 
     if args.common_features_csv is not None:
         _log.info(f"Saving common features to {args.common_features_csv}")
-        common_features.to_csv(args.common_features_csv, sep='\t')
+        common_features.to_csv(args.common_features_csv)
 
 if __name__ == '__main__':
     main()
