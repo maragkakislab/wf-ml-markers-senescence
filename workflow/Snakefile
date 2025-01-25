@@ -29,12 +29,14 @@ use rule * from sencid_workflow as sencid_*
 
 # Processing input counts data for ML applications
 include: "rules/data.smk"
+include: "rules/plots.smk"
 
 rule all:
     input:
         # SenCID results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"), counts_file=["SenCat"]),
-        # plots on raw SenCat counts
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.SenCID_predictions.pdf"), counts_file=["SenCat"]),
+        # qc plots on raw SenCat counts
         expand(os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.ribo_plot.pdf"), counts_file=["SenCat"]),
@@ -51,31 +53,6 @@ use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predic
         txt = os.path.join(ANALYSIS_DIR, "{counts_file}.for_SenCID.txt")
     params:
         denoising = False
-
-rule qc_plots:
-    input:
-        anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
-    output:
-        library_size_plot = os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"),
-        mito_plot = os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"),
-        ribo_plot = os.path.join(PLOTS_DIR, "{counts_file}.ribo_plot.pdf"),
-        hb_plot = os.path.join(PLOTS_DIR, "{counts_file}.hb_plot.pdf"),
-    log:
-        os.path.join(LOG_DIR, "{counts_file}.qc_plots.log")
-    conda:
-        "envs/data.yaml"
-    shell:
-        """
-        python workflow/scripts/plots/qc.py \
-            {input.anndata} \
-            --library_size_path {output.library_size_plot} \
-            --mito_path {output.mito_plot} \
-            --ribo_path {output.ribo_plot} \
-            --hb_path {output.hb_plot} \
-            --log {log} \
-            --log-level {LOG_LEVEL} \
-            2>&1 | tee {log}
-        """
 
 rule ml_classifier:
     input:

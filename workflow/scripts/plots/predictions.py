@@ -3,6 +3,9 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve, auc
+import logging
+
+_log = logging.getLogger(__name__)
 
 def plot_results(results, save_pdf, label_col='is_sen', score_col='score'):
     fig, axs = plt.subplots(1, 2, figsize=(7, 3), dpi=600)
@@ -33,7 +36,13 @@ def main():
     parser.add_argument('output_pdf', type=str)
     args = parser.parse_args()
 
-    results = pd.read_csv(args.results_path, sep='\t', index_col=0)
+    if args.results_path.endswith(('.tsv', '.txt')):
+        results = pd.read_csv(args.results_path, sep='\t', index_col=0)
+    elif args.results_path.endswith('.csv'):
+        results = pd.read_csv(args.results_path, index_col=0)
+    else:
+        _log.error('Input file must be a tsv or csv file')
+
     results['is_sen'] = results.index.map(lambda x: 0 if x.split("_")[-2] in ['P', 'EV'] else 1)
     plot_results(results, args.output_pdf)
 
