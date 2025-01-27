@@ -21,15 +21,60 @@ rule assemble_anndata:
             2>&1 | tee {log}
         """
 
+rule build_gene_id_table_from_ensembl:
+    output:
+        os.path.join(DATA_DIR, config["ASSEMBLY"], 'gene_ids_' + config["ARCHIVE_NAME"] + '.txt')
+    params:
+        link = 'http://' + config["ARCHIVE_NAME"] + '.ensembl.org/biomart/martservice?query=',
+        xml = '<?xml version="1.0" encoding="UTF-8"?>',
+        qopen = '<!DOCTYPE Query><Query  virtualSchemaName = "default" formatter = "TSV" header = "1" uniqueRows = "0" count = "" datasetConfigVersion = "0.6" >',
+        dopen = '<Dataset name = "' + config["ENSEMBL_ASSEMBLY_TO_SPECIES_NAME"][config["ASSEMBLY"]] + '_gene_ensembl" interface = "default" >',
+        attr = "".join(['<Attribute name = "'+ a +'" />' for a in ['ensembl_gene_id', 'external_gene_name']]),
+        dclose = '</Dataset>',
+        qclose = '</Query>'
+    shell:
+        """
+        wget -O {output} '{params.link}{params.xml}{params.qopen}{params.dopen}{params.attr}{params.dclose}{params.qclose}'
+        """ 
+
+rule anndata_from_txt:
+    output:
+        h5ad = os.path.join(ANALYSIS_DIR,  "Matts.h5ad"),
+        # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
+        # index is Gene_name -> rows with NaNs are removed
+        txt = os.path.join(ANALYSIS_DIR,  "Matts.for_SenCID.txt")
+    input:
+        counts = os.path.join(DATA_DIR, "23_all_sample_gene_counts.txt"),
+        mapping = os.path.join(DATA_DIR, config["ASSEMBLY"], 'gene_ids_' + config["ARCHIVE_NAME"] + '.txt'),
+        metadata = os.path.join(DATA_DIR, "23_coldata.xlsx")
+    conda:
+        "../envs/data.yaml"
+    params:
+        input_gene_col = "ENSG",
+        mapping_gene_col = "Gene stable ID",
+        mapping_name_col = "Gene name"
+    shell:
+        """
+        python {workflow.basedir}/scripts/data/anndata_from_txt.py \
+            --input-tsv {input.counts} \
+            --mapping-tsv {input.mapping} \
+            --metadata-excel {input.metadata} \
+            --input-gene-col {params.input_gene_col} \
+            --mapping-gene-col {params.mapping_gene_col:q} \
+            --mapping-name-col {params.mapping_name_col:q} \
+            --output-h5ad {output.h5ad} \
+            --output-txt {output.txt}
+        """
+
 rule normalize_counts:
     input:
-        anndata = os.path.join(ANALYSIS_DIR, "SenCat.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
     output:
-        anndata = os.path.join(ANALYSIS_DIR, "SenCat.normalized.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.normalized.h5ad"),
     params:
         design = "~celltype + treatment"
     log:
-        os.path.join(LOG_DIR, "normalize_counts.log")
+        os.path.join(LOG_DIR, "{counts_file}.normalize_counts.log")
     conda:
         "../envs/pydeseq2.yaml"
     shell:

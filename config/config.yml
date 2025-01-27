@@ -6,8 +6,15 @@ LOG_DIR: "logs/"
 # Logging level
 LOG_LEVEL: "DEBUG"
 
-
 CELL_TYPES: ["BJ", "BMMSC", "HCAEC", "HEKn", "HeMn", "HSAEC", "HUVEC", "HVSMC", "Myoblasts", "NHA", "NHO", "PBMCs", "prAD", "WI38"]
+
+ENSEMBL_ASSEMBLY_TO_SPECIES_NAME: {
+  "hg38": "hsapiens",
+  "mm10": "mmusculus",
+}
+
+ASSEMBLY: "hg38"
+ARCHIVE_NAME: "jul2023.archive"
 
 SenCID:
   ANALYSIS_DIR: "analysis/"

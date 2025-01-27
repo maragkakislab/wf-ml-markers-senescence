@@ -23,7 +23,7 @@ rule qc_plots:
             2>&1 | tee {log}
         """
 
-rule sencid_preds_plots:
+rule preds_plots:
     input:
         rec = os.path.join(ANALYSIS_DIR, "{results}.csv"),
     output:
