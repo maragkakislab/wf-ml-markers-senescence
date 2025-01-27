@@ -53,6 +53,8 @@ rule anndata_from_txt:
         input_gene_col = "ENSG",
         mapping_gene_col = "Gene stable ID",
         mapping_name_col = "Gene name"
+    log:
+        os.path.join(LOG_DIR, "anndata_from_txt.log")
     shell:
         """
         python {workflow.basedir}/scripts/data/anndata_from_txt.py \
@@ -63,7 +65,9 @@ rule anndata_from_txt:
             --mapping-gene-col {params.mapping_gene_col:q} \
             --mapping-name-col {params.mapping_name_col:q} \
             --output-h5ad {output.h5ad} \
-            --output-txt {output.txt}
+            --output-txt {output.txt} \
+            --log {log} \
+            --log-level {LOG_LEVEL} \
         """
 
 rule normalize_counts:
