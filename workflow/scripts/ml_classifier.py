@@ -10,6 +10,7 @@ import scanpy as sc
 from collections import Counter
 import logging
 import argparse
+import random
 
 _log = logging.getLogger("ml_classifier")
 
@@ -139,6 +140,11 @@ def get_common_features(adata, models, features, importance_threshold, gene_col=
 
 
 def main():
+
+    # fix all seeds
+    random.seed(42)
+    np.random.seed(42)
+
     parser = argparse.ArgumentParser(description='Train a logistic regression model for each cell type')
     parser.add_argument('adata_path', type=str)
     parser.add_argument('--feat_select_plot', type=str, default=None)
