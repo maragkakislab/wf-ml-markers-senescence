@@ -118,9 +118,9 @@ def assemble_anndata(input_files, output_path, output_txt=None):
     # create observations from column names
     obs = pd.DataFrame([obs_from_col_name(col) for col in df.columns])
     # create label column based on treatment - P and EV are control, all others are treatment
-    obs['label'] = obs.apply(lambda x: 0 if x['treatment'] in ['P', 'EV'] else 1, axis=1)
+    obs['is_sen'] = obs.apply(lambda x: 0 if x['treatment'] in ['P', 'EV'] else 1, axis=1)
     _log.debug(f"Created observations with {obs.shape[0]} samples.")
-    _log.debug(f"Control samples: {obs[obs['label'] == 0].shape[0]}. Treatment samples: {obs[obs['label'] == 1].shape[0]}.")
+    _log.debug(f"Control samples: {obs[obs['is_sen'] == 0].shape[0]}. Treatment samples: {obs[obs['is_sen'] == 1].shape[0]}.")
     _log.debug(f"Cell types: {obs['celltype'].unique()}. Treatments: {obs['treatment'].unique()}. Replicates: {obs['replicate'].unique()}.")
 
     # create sample name from cell type, treatment and replicate
@@ -151,6 +151,7 @@ def assemble_anndata(input_files, output_path, output_txt=None):
         # drop nan indices
         df = df[~df.index.isna()]
         _log.debug(f"Kept {df.shape[0]} genes with non-NaN gene names.")
+        df.columns = obs.index
         df.to_csv(output_txt, sep='\t')
         _log.info(f"Saved gene counts to {output_txt}")
 

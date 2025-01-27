@@ -29,21 +29,21 @@ def set_logging(log_file, log_level):
     _log.addHandler(ch)
     _log.addHandler(fh)
 
-def univariate_feature_selection(adata, n_features=500, label_col='label'):
+def univariate_feature_selection(adata, n_features=500, label_col='is_sen'):
     _log.info(f"Selecting {n_features} features")
     selector = SelectKBest(f_classif, k=n_features)
     selector.fit(adata.X, adata.obs[label_col])
     features = selector.get_support(indices=True)
     return features
 
-def train_test_split(adata, celltype, features, label_col='label', celltype_col='celltype'):
+def train_test_split(adata, celltype, features, label_col='is_sen', celltype_col='celltype'):
 
     train = adata[adata.obs[celltype_col] != celltype, features]
     test = adata[adata.obs[celltype_col] == celltype, features]
     
     return train.X, train.obs[label_col], test.X, test.obs[label_col]
 
-def train_models_for_celltypes(adata, features, label_col='label', celltype_col='celltype'):
+def train_models_for_celltypes(adata, features, label_col='is_sen', celltype_col='celltype'):
     models = {}
     for celltype in adata.obs[celltype_col].unique():
 
@@ -72,7 +72,7 @@ def evaluate_models_for_celltypes(adata, models, features, celltype_col='celltyp
 
 def select_optimal_num_features(
         adata, 
-        label_col='label', 
+        label_col='is_sen', 
         celltype_col='celltype', 
         feat_select_plot=None,
         min_features=50,

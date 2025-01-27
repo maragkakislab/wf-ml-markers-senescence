@@ -25,12 +25,13 @@ rule qc_plots:
 
 rule preds_plots:
     input:
-        rec = os.path.join(ANALYSIS_DIR, "{results}.csv"),
+        rec = os.path.join(ANALYSIS_DIR, "{counts_file}.{predictio_method}_results.csv"),
+        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
     output:
-        pdf = os.path.join(PLOTS_DIR, "{results}.pdf")
+        pdf = os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf")
     conda:
         "../envs/data.yaml"
     shell:
         """
-        python workflow/scripts/plots/predictions.py {input.rec} {output.pdf}
+        python workflow/scripts/plots/predictions.py {input.rec} {output.pdf} {input.h5ad}
         """

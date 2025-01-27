@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+import scanpy as sc
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve, auc
@@ -34,6 +35,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('results_path', type=str)
     parser.add_argument('output_pdf', type=str)
+    parser.add_argument('h5ad_path', type=str)
     args = parser.parse_args()
 
     if args.results_path.endswith(('.tsv', '.txt')):
@@ -42,8 +44,14 @@ def main():
         results = pd.read_csv(args.results_path, index_col=0)
     else:
         _log.error('Input file must be a tsv or csv file')
+    
 
-    results['is_sen'] = results.index.map(lambda x: 0 if x.split("_")[-2] in ['P', 'EV'] else 1)
+    adata = sc.read(args.h5ad_path)
+
+    results = results.merge(adata.obs["is_sen"], left_index=True, right_index=True)
+    # make sure the column is 0/1
+    results["is_sen"] = results["is_sen"].astype(int)
+    print(results.head())
     plot_results(results, args.output_pdf)
 
 if __name__ == '__main__':

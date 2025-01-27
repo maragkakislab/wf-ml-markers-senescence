@@ -38,8 +38,8 @@ rule all:
         # SenCID results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"), counts_file=["SenCat", "Matts"]),
         # results plots
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.SenCID_results.pdf"), counts_file=["SenCat", "Matts"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.classification_results.pdf"), counts_file=["SenCat"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat"], predictio_method=["SenCID", "classification"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat", "Matts"], predictio_method=["SenCID"]),
         # qc plots on raw SenCat counts
         expand(os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"), counts_file=["SenCat"]),
@@ -56,7 +56,7 @@ use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predic
     input: 
         txt = os.path.join(ANALYSIS_DIR, "{counts_file}.for_SenCID.txt")
     params:
-        denoising = False
+        denoising = 'f'
 
 rule ml_classifier:
     input:
