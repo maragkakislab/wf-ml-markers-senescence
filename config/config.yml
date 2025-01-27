@@ -20,3 +20,7 @@ SenCID:
   ANALYSIS_DIR: "analysis/"
   SENCID_SAMPLES: ["counts"]
   SENCID_DENOISING: 'f'
+
+NORMALIZATION_DESIGN:
+  SenCat: "~celltype + treatment"
+  Matts: "seqtype + condition"

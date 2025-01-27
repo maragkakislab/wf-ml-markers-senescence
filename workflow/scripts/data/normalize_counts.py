@@ -2,6 +2,7 @@ from pydeseq2.dds import DeseqDataSet
 import scanpy as sc
 import logging
 import argparse
+from scipy.sparse import csr_matrix
 
 _log = logging.getLogger("normalize_counts")
 
@@ -35,7 +36,11 @@ def main():
     adata = sc.read(args.input_h5ad)
     logging.info(f"Read AnnData object with shape {adata.X.shape}")
 
-    adata.X = adata.X.todense()
+    # if sparse matrix, convert to dense matrix
+    if isinstance(adata.X, csr_matrix):
+        adata.X = adata.X.todense()
+        logging.info(f"Converted sparse matrix to dense matrix")
+
     logging.info(f"Converted sparse matrix to dense matrix")
 
     logging.info(f"Removing genes with counts for less than 5% of samples")

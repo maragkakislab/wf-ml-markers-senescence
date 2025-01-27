@@ -76,7 +76,7 @@ rule normalize_counts:
     output:
         anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.normalized.h5ad"),
     params:
-        design = "~celltype + treatment"
+        design = lambda wilds: config["NORMALIZATION_DESIGN"][wilds.counts_file],
     log:
         os.path.join(LOG_DIR, "{counts_file}.normalize_counts.log")
     conda:

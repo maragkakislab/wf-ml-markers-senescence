@@ -33,6 +33,8 @@ include: "rules/plots.smk"
 
 rule all:
     input:
+        # normalized data
+        expand(os.path.join(ANALYSIS_DIR, "{counts_file}.normalized.h5ad"), counts_file=["SenCat", "Matts"]),
         # SenCID results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"), counts_file=["SenCat", "Matts"]),
         # results plots
