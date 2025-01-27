@@ -52,6 +52,10 @@ def main():
     # make sure the column is 0/1
     results["is_sen"] = results["is_sen"].astype(int)
     print(results.head())
+
+    # drop rows where index contains Ribo
+    results = results[~results.index.str.contains('Ribo')]
+
     plot_results(results, args.output_pdf)
 
 if __name__ == '__main__':

@@ -136,7 +136,7 @@ def get_common_features(adata, models, features, importance_threshold, gene_col=
     _log.debug(f"Mean coefs: {mean_coefs}")
     gene_names = adata.var[gene_col][common_features]
 
-    return pd.DataFrame({'gene': gene_names, 'mean_coef': mean_coefs})
+    return pd.DataFrame({'gene': gene_names, 'coef': mean_coefs})
 
 
 def main():

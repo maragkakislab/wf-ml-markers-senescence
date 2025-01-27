@@ -38,8 +38,8 @@ rule all:
         # SenCID results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"), counts_file=["SenCat", "Matts"]),
         # results plots
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat"], predictio_method=["SenCID", "classification"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat", "Matts"], predictio_method=["SenCID"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat"], predictio_method=["SenCID", "classification", "marker_classification"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat", "Matts"], predictio_method=["SenCID", "marker_classification"]),
         # qc plots on raw SenCat counts
         expand(os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"), counts_file=["SenCat"]),
@@ -48,7 +48,9 @@ rule all:
         # classification results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.classification_results.csv"), counts_file=["SenCat"]),
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.common_features.csv"), counts_file=["SenCat"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.feat_select_plot.pdf"), counts_file=["SenCat"])
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.feat_select_plot.pdf"), counts_file=["SenCat"]),
+        # classification with markers results
+        expand(os.path.join(ANALYSIS_DIR, "{counts_file}.marker_classification_results.csv"), counts_file=["SenCat", "Matts"])
 
 use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predictions with:
     output:
@@ -79,6 +81,27 @@ rule ml_classifier:
             --common_features_csv {output.common_features_csv} \
             --feat_select_plot {output.feat_select_plot} \
             --importance_threshold {params.importance_threshold} \
+            --log {log} \
+            --log-level {LOG_LEVEL} \
+            2>&1 | tee {log}
+        """
+
+rule marker_classifier:
+    input:
+        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file}.normalized.h5ad"),
+        markers = os.path.join(ANALYSIS_DIR, "SenCat.common_features.csv")
+    output:
+        results_csv = os.path.join(ANALYSIS_DIR, "{counts_file}.marker_classification_results.csv")
+    log:
+        os.path.join(LOG_DIR, "{counts_file}.marker_classifier.log")
+    conda:
+        "envs/data.yaml"
+    shell:
+        """
+        python workflow/scripts/marker_classifier.py \
+            --input-h5ad {input.h5ad} \
+            --markers {input.markers} \
+            --output-results-csv {output.results_csv} \
             --log {log} \
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}
