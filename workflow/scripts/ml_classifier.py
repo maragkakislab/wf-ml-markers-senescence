@@ -151,6 +151,7 @@ def main():
     parser.add_argument('--results_csv', type=str, default=None)
     parser.add_argument('--common_features_csv', type=str, default=None)
     parser.add_argument('--importance_threshold', type=float, default=0.01)
+    parser.add_argument('--tuned_common_features_csv', type=str, default=None)
     parser.add_argument('--log', type=str, help='Path to log file', required=True)
     parser.add_argument('--log-level', type=str, help='Log level', default='INFO')
     args = parser.parse_args()
@@ -186,6 +187,14 @@ def main():
     if args.common_features_csv is not None:
         _log.info(f"Saving common features to {args.common_features_csv}")
         common_features.to_csv(args.common_features_csv)
+
+    if args.tuned_common_features_csv is not None:
+
+        coefs_models = train_models_for_celltypes(adata, common_features.index)
+        coefs_results = evaluate_models_for_celltypes(adata, coefs_models, common_features.index)
+        coefs_common_features = get_common_features(adata, coefs_models, common_features.index, 0)
+        coefs_common_features.to_csv(args.tuned_common_features_csv)
+
 
 if __name__ == '__main__':
     main()

@@ -38,8 +38,8 @@ rule all:
         # SenCID results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"), counts_file=["SenCat", "Matts"]),
         # results plots
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat"], predictio_method=["SenCID", "classification", "marker_classification"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat", "Matts"], predictio_method=["SenCID", "marker_classification"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat"], predictio_method=["SenCID", "classification", "common_features", "tuned_common_features"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat", "Matts"], predictio_method=["SenCID", "common_features", "tuned_common_features"]),
         # qc plots on raw SenCat counts
         expand(os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"), counts_file=["SenCat"]),
@@ -50,7 +50,7 @@ rule all:
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.common_features.csv"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.feat_select_plot.pdf"), counts_file=["SenCat"]),
         # classification with markers results
-        expand(os.path.join(ANALYSIS_DIR, "{counts_file}.marker_classification_results.csv"), counts_file=["SenCat", "Matts"])
+        expand(os.path.join(ANALYSIS_DIR, "{counts_file}.{markers}_results.csv"), counts_file=["SenCat", "Matts"], markers=["common_features", "tuned_common_features"]),
 
 use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predictions with:
     output:
@@ -66,9 +66,10 @@ rule ml_classifier:
     output:
         results_csv = os.path.join(ANALYSIS_DIR, "SenCat.classification_results.csv"),
         common_features_csv = os.path.join(ANALYSIS_DIR, "SenCat.common_features.csv"),
+        tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "SenCat.tuned_common_features.csv"),
         feat_select_plot = os.path.join(PLOTS_DIR, "SenCat.feat_select_plot.pdf"),
     params:
-        importance_threshold = 0.001
+        importance_threshold = 0
     log:
         os.path.join(LOG_DIR, "ml_classifier.log")
     conda:
@@ -81,6 +82,7 @@ rule ml_classifier:
             --common_features_csv {output.common_features_csv} \
             --feat_select_plot {output.feat_select_plot} \
             --importance_threshold {params.importance_threshold} \
+            --tuned_common_features_csv {output.tuned_common_features_csv} \
             --log {log} \
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}
@@ -89,11 +91,11 @@ rule ml_classifier:
 rule marker_classifier:
     input:
         h5ad = os.path.join(ANALYSIS_DIR, "{counts_file}.normalized.h5ad"),
-        markers = os.path.join(ANALYSIS_DIR, "SenCat.common_features.csv")
+        markers = os.path.join(ANALYSIS_DIR, "SenCat.{markers}.csv")
     output:
-        results_csv = os.path.join(ANALYSIS_DIR, "{counts_file}.marker_classification_results.csv")
+        results_csv = os.path.join(ANALYSIS_DIR, "{counts_file}.{markers}_results.csv")
     log:
-        os.path.join(LOG_DIR, "{counts_file}.marker_classifier.log")
+        os.path.join(LOG_DIR, "{counts_file}.{markers}.marker_classifier.log")
     conda:
         "envs/data.yaml"
     shell:
