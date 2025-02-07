@@ -180,7 +180,7 @@ def main():
     _log.info(f"Trained models for cell types")
     result = evaluate_models_for_celltypes(adata, models, features)
     _log.info(f"Evaluated models for cell types")
-    common_features = get_common_features(adata, models, features, n_models = len(models),importance_threshold = args.importance_threshold)
+    common_features = get_common_features(adata, models, features, n_models = len(models) - 1, importance_threshold = args.importance_threshold)
     _log.info(f"Selected common features")
 
     if args.results_csv is not None:
