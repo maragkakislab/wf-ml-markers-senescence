@@ -38,10 +38,10 @@ rule all:
         # SenCID results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv"), counts_file=["SenCat", "Matts"]),
         # results plots
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat"], predictio_method=["SenCID", "classification", "common_features", "tuned_common_features"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat"], predictio_method=["classification", "tuned_classification"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf"), counts_file=["SenCat", "Matts"], predictio_method=["SenCID", "common_features", "tuned_common_features"]),
         # qc plots on raw SenCat counts
-        expand(os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"), counts_file=["SenCat"]),
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.library_size.pdf"), counts_file=["SenCat", "SenCat.normalized"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.mito_plot.pdf"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.ribo_plot.pdf"), counts_file=["SenCat"]),
         expand(os.path.join(PLOTS_DIR, "{counts_file}.hb_plot.pdf"), counts_file=["SenCat"]),
@@ -67,6 +67,7 @@ rule ml_classifier:
         results_csv = os.path.join(ANALYSIS_DIR, "SenCat.classification_results.csv"),
         common_features_csv = os.path.join(ANALYSIS_DIR, "SenCat.common_features.csv"),
         tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "SenCat.tuned_common_features.csv"),
+        tuned_results_csv = os.path.join(ANALYSIS_DIR, "SenCat.tuned_classification_results.csv"),
         feat_select_plot = os.path.join(PLOTS_DIR, "SenCat.feat_select_plot.pdf"),
     params:
         importance_threshold = 0
@@ -83,6 +84,7 @@ rule ml_classifier:
             --feat_select_plot {output.feat_select_plot} \
             --importance_threshold {params.importance_threshold} \
             --tuned_common_features_csv {output.tuned_common_features_csv} \
+            --tuned_results_csv {output.tuned_results_csv} \
             --log {log} \
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}

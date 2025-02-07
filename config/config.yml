@@ -23,4 +23,4 @@ SenCID:
 
 NORMALIZATION_DESIGN:
   SenCat: "~celltype + treatment"
-  Matts: "seqtype + condition"
+  Matts: "sample"

@@ -75,7 +75,7 @@ def select_optimal_num_features(
         label_col='is_sen', 
         celltype_col='celltype', 
         feat_select_plot=None,
-        min_features=50,
+        min_features=500,
         max_features=2000,
         step=50
     ):
@@ -101,7 +101,7 @@ def select_optimal_num_features(
 
     return max(feat_to_auc, key=lambda x: x[1])[0]
 
-def get_common_features(adata, models, features, importance_threshold, gene_col='Gene_name'):
+def get_common_features(adata, models, features, importance_threshold, n_models, gene_col='Gene_name'):
 
     def get_top_features_for_celltype(models, features, importance_threshold):
         top_features = {}
@@ -116,19 +116,24 @@ def get_common_features(adata, models, features, importance_threshold, gene_col=
         for genes in top_genes.values():
             gene_counts.update(genes[0])
 
-        common_genes = [gene for gene, count in gene_counts.items() if count == n_models]
+        common_genes = [gene for gene, count in gene_counts.items() if count >= n_models]
         return np.array(common_genes)
     
     def get_feature_importance(top_features, common_features):
         feature_importance = {}
+        # if some of the cell types do not have common features, we need to use zero importance for them
         for celltype, genes in top_features.items():
-            feature_importance[celltype] = genes[1][np.isin(genes[0], common_features)]
+            for feature in common_features:
+                if feature in genes[0]:
+                    feature_importance.setdefault(celltype, []).append(genes[1][genes[0] == feature][0])
+                else:
+                    feature_importance.setdefault(celltype, []).append(0)
         
         return feature_importance
 
     top_features = get_top_features_for_celltype(models, features, importance_threshold)
     _log.debug(f"Top features: {top_features}")
-    common_features = get_overlap(top_features, len(models))
+    common_features = get_overlap(top_features, n_models)
     _log.debug(f"Common features: {common_features}")
     feature_importance = get_feature_importance(top_features, common_features)
     _log.debug(f"Feature importance: {feature_importance}")
@@ -152,6 +157,7 @@ def main():
     parser.add_argument('--common_features_csv', type=str, default=None)
     parser.add_argument('--importance_threshold', type=float, default=0.01)
     parser.add_argument('--tuned_common_features_csv', type=str, default=None)
+    parser.add_argument('--tuned_results_csv', type=str, default=None)
     parser.add_argument('--log', type=str, help='Path to log file', required=True)
     parser.add_argument('--log-level', type=str, help='Log level', default='INFO')
     args = parser.parse_args()
@@ -167,6 +173,7 @@ def main():
     _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
 
     _log.info(f"Do log1p transformation")
+    sc.pp.normalize_total(adata)
     sc.pp.log1p(adata)
 
     n_features = select_optimal_num_features(adata, feat_select_plot=args.feat_select_plot)
@@ -177,7 +184,7 @@ def main():
     _log.info(f"Trained models for cell types")
     result = evaluate_models_for_celltypes(adata, models, features)
     _log.info(f"Evaluated models for cell types")
-    common_features = get_common_features(adata, models, features, importance_threshold=args.importance_threshold)
+    common_features = get_common_features(adata, models, features, n_models = len(models),importance_threshold = args.importance_threshold)
     _log.info(f"Selected common features")
 
     if args.results_csv is not None:
@@ -192,8 +199,12 @@ def main():
 
         coefs_models = train_models_for_celltypes(adata, common_features.index)
         coefs_results = evaluate_models_for_celltypes(adata, coefs_models, common_features.index)
-        coefs_common_features = get_common_features(adata, coefs_models, common_features.index, 0)
+        coefs_common_features = get_common_features(adata, coefs_models, common_features.index, n_models = 0, importance_threshold = 0)
         coefs_common_features.to_csv(args.tuned_common_features_csv)
+
+        if args.tuned_results_csv is not None:
+            _log.info(f"Saving tuned results to {args.tuned_results_csv}")
+            coefs_results.to_csv(args.tuned_results_csv)
 
 
 if __name__ == '__main__':
