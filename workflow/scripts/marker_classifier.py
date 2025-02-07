@@ -45,9 +45,6 @@ def main():
     adata = sc.read(args.input_h5ad)
     logging.info(f"Read AnnData object with shape {adata.X.shape}")
     
-    sc.pp.normalize_total(adata)
-    sc.pp.log1p(adata)
-
     markers = pd.read_csv(args.markers, index_col=0)
 
     result = classify_samples(adata, markers)

@@ -172,10 +172,6 @@ def main():
     adata = adata[:, adata.X.astype(bool).sum(0) == adata.shape[0]]
     _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
 
-    _log.info(f"Do log1p transformation")
-    sc.pp.normalize_total(adata)
-    sc.pp.log1p(adata)
-
     n_features = select_optimal_num_features(adata, feat_select_plot=args.feat_select_plot)
     features = univariate_feature_selection(adata, n_features=n_features)
     _log.info(f"Selected {n_features} features")
