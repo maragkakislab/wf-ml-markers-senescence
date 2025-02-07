@@ -72,9 +72,6 @@ def main():
 
     del dds.obsm['design_matrix']
 
-    _log.info(f"Do log1p transformation")
-    sc.pp.log1p(dds)
-
     logging.info(f"Saving normalized counts to {args.output_h5ad}")
     dds.write_h5ad(args.output_h5ad)
 

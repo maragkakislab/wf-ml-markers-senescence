@@ -168,6 +168,9 @@ def main():
     adata = sc.read_h5ad(args.adata_path)
     _log.debug(f"Read AnnData object with shape {adata.X.shape}")
 
+    _log.info(f"Do log1p transformation")
+    sc.pp.log1p(adata)
+
     _log.info(f"Feature pre-selection. Keep only genes with counts in each sample")
     adata = adata[:, adata.X.astype(bool).sum(0) == adata.shape[0]]
     _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
