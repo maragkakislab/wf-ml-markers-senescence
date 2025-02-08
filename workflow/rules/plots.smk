@@ -35,3 +35,23 @@ rule preds_plots:
         """
         python workflow/scripts/plots/predictions.py {input.rec} {output.pdf} {input.h5ad}
         """
+
+rule gene_markers:
+    input:
+        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
+        csv = lambda wilds: os.path.join(CONFIG_DIR, f"{wilds.gene_markers}_gene_markers.csv")
+    output:
+        plot = os.path.join(PLOTS_DIR, "{counts_file}.{gene_markers}.gene_markers.pdf")
+    conda:
+        "../envs/data.yaml"
+    log:
+        os.path.join(LOG_DIR, "gene_markers.{counts_file}.{gene_markers}.log")
+    shell:
+        """
+        python workflow/scripts/plots/gene_markers.py \
+            --input-h5ad {input.h5ad} \
+            --gene-markers-csv {input.csv} \
+            --output-plot {output.plot} \
+            --log {log} \
+            --log-level {LOG_LEVEL} \
+        """    

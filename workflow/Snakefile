@@ -18,8 +18,10 @@ ANALYSIS_DIR = config['ANALYSIS_DIR']
 PLOTS_DIR = config['PLOTS_DIR']
 LOG_DIR = config['LOG_DIR']
 LOG_LEVEL = config['LOG_LEVEL']
+CONFIG_DIR = config['CONFIG_DIR']
 
 CELL_TYPES = config['CELL_TYPES']
+GENE_MARKER_PLOT = config['GENE_MARKER_PLOT']
 
 module sencid_workflow:
     snakefile: github("maragkakislab/wf-SenCID", path="workflow/Snakefile", branch="module")
@@ -51,6 +53,8 @@ rule all:
         expand(os.path.join(PLOTS_DIR, "{counts_file}.feat_select_plot.pdf"), counts_file=["SenCat"]),
         # classification with markers results
         expand(os.path.join(ANALYSIS_DIR, "{counts_file}.{markers}_results.csv"), counts_file=["SenCat", "Matts"], markers=["common_features", "tuned_common_features"]),
+        # plot gene markers
+        expand(os.path.join(PLOTS_DIR, "{counts_file}.{gene_markers}.gene_markers.pdf"), counts_file=["SenCat"], gene_markers=["SenCat"]),
 
 use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predictions with:
     output:
