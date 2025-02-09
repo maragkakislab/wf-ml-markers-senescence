@@ -55,3 +55,25 @@ rule gene_markers:
             --log {log} \
             --log-level {LOG_LEVEL} \
         """    
+
+rule gene_markers_with_ml_marker:
+    input:
+        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file_input}.h5ad"),
+        csv = os.path.join(ANALYSIS_DIR, "{counts_file_markers}.common_features.csv"),
+        ml_csv = os.path.join(ANALYSIS_DIR, "{counts_file_ml_markers}.tuned_common_features.csv"), 
+    output:
+        plot = os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.{counts_file_ml_markers}_ml_markers.pdf")
+    conda:
+        "../envs/data.yaml"
+    log:
+        os.path.join(LOG_DIR, "gene_markers.{counts_file_input}.{counts_file_markers}.{counts_file_ml_markers}.log")
+    shell:
+        """
+        python workflow/scripts/plots/gene_markers_with_ml_marker.py \
+            --input-h5ad {input.h5ad} \
+            --gene-markers-csv {input.csv} \
+            --ml-marker-csv {input.ml_csv} \
+            --output-plot {output.plot} \
+            --log {log} \
+            --log-level {LOG_LEVEL} \
+        """

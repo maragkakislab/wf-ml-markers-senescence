@@ -3,22 +3,9 @@ import argparse
 import logging
 import matplotlib.pyplot as plt
 
-_log = logging.getLogger("qc_plots")
+from utils import set_logging
 
-def set_logging(log_file, log_level):
-    _log.setLevel(log_level)
-    # create file handler that logs debug and higher level messages
-    fh = logging.FileHandler(log_file)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    fh.setFormatter(formatter)
-    # add the handlers to logger
-    _log.addHandler(ch)
-    _log.addHandler(fh)
+_log = logging.getLogger("qc_plots")
 
 def calculate_qc_metrics(adata, gene_name_col='Gene_name', species='mouse'):
 
@@ -125,7 +112,7 @@ def main():
     parser.add_argument('--log-level', type=str, default="INFO", help='Log level')
     args = parser.parse_args()
 
-    set_logging(args.log, args.log_level)
+    set_logging(_log, args.log, args.log_level)
     _log.debug(f"Command line arguments: {args}")
 
     # read anndata object

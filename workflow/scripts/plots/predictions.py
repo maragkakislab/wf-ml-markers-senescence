@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve, auc
 import logging
 
-_log = logging.getLogger(__name__)
+from utils import set_logging
+
+_log = logging.getLogger("predictions")
 
 def plot_results(results, save_pdf, label_col='is_sen', score_col='score'):
     fig, axs = plt.subplots(1, 2, figsize=(7, 3), dpi=600)
@@ -36,7 +38,12 @@ def main():
     parser.add_argument('results_path', type=str)
     parser.add_argument('output_pdf', type=str)
     parser.add_argument('h5ad_path', type=str)
+    parser.add_argument('--log', type=str, help='Path to log file', required=True)
+    parser.add_argument('--log-level', type=str, help='Log level', default='INFO')
     args = parser.parse_args()
+    
+    set_logging(_log, args.log, args.log_level)
+    _log.debug(f"Command line arguments: {args}")
 
     if args.results_path.endswith(('.tsv', '.txt')):
         results = pd.read_csv(args.results_path, sep='\t', index_col=0)
