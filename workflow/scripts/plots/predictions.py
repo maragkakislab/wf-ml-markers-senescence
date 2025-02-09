@@ -35,9 +35,9 @@ def plot_results(results, save_pdf, label_col='is_sen', score_col='score'):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('results_path', type=str)
-    parser.add_argument('output_pdf', type=str)
-    parser.add_argument('h5ad_path', type=str)
+    parser.add_argument('--results-csv', type=str)
+    parser.add_argument('--output-plot', type=str)
+    parser.add_argument('--input-h5ad', type=str)
     parser.add_argument('--log', type=str, help='Path to log file', required=True)
     parser.add_argument('--log-level', type=str, help='Log level', default='INFO')
     args = parser.parse_args()
@@ -45,15 +45,15 @@ def main():
     set_logging(_log, args.log, args.log_level)
     _log.debug(f"Command line arguments: {args}")
 
-    if args.results_path.endswith(('.tsv', '.txt')):
-        results = pd.read_csv(args.results_path, sep='\t', index_col=0)
-    elif args.results_path.endswith('.csv'):
-        results = pd.read_csv(args.results_path, index_col=0)
+    if args.results_csv.endswith(('.tsv', '.txt')):
+        results = pd.read_csv(args.results_csv, sep='\t', index_col=0)
+    elif args.results_csv.endswith('.csv'):
+        results = pd.read_csv(args.results_csv, index_col=0)
     else:
         _log.error('Input file must be a tsv or csv file')
     
 
-    adata = sc.read(args.h5ad_path)
+    adata = sc.read(args.input_h5ad)
 
     results = results.merge(adata.obs["is_sen"], left_index=True, right_index=True)
     # make sure the column is 0/1
@@ -63,7 +63,7 @@ def main():
     # drop rows where index contains Ribo
     results = results[~results.index.str.contains('Ribo')]
 
-    plot_results(results, args.output_pdf)
+    plot_results(results, args.output_plot)
 
 if __name__ == '__main__':
     main()

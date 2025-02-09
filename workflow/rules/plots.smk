@@ -29,11 +29,18 @@ rule preds_plots:
         h5ad = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
     output:
         pdf = os.path.join(PLOTS_DIR, "{counts_file}.{predictio_method}_results.pdf")
+    log:
+        os.path.join(LOG_DIR, "{counts_file}.{predictio_method}_preds_plots.log")
     conda:
         "../envs/data.yaml"
     shell:
         """
-        python workflow/scripts/plots/predictions.py {input.rec} {output.pdf} {input.h5ad}
+        python {workflow.basedir}/scripts/plots/predictions.py \
+            --results-csv {input.rec} \
+            --input-h5ad {input.h5ad} \
+            --output-plot {output.pdf} \
+            --log {log} \
+            --log-level {LOG_LEVEL} \
         """
 
 rule gene_markers:
