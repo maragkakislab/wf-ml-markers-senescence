@@ -6,7 +6,7 @@ import scanpy as sc
 import logging
 import argparse
 
-from utils import set_logging, get_marker_gene_values
+from utils import set_logging
 
 _log = logging.getLogger("gene_markers_with_ml_marker")
 

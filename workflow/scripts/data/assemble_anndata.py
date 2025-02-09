@@ -40,22 +40,9 @@ import os
 from scipy.sparse import csr_matrix
 import argparse
 
-_log = logging.getLogger("assemble_anndata")
+from utils import set_logging
 
-def set_logging(log_file, log_level):
-    _log.setLevel(log_level)
-    # create file handler that logs debug and higher level messages
-    fh = logging.FileHandler(log_file)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    fh.setFormatter(formatter)
-    # add the handlers to logger
-    _log.addHandler(ch)
-    _log.addHandler(fh)
+_log = logging.getLogger("assemble_anndata")
 
 def assemble_anndata(input_files, output_path, output_txt=None):
 
@@ -164,7 +151,7 @@ def main():
     parser.add_argument('--log-level', type=str, default="INFO", help='Log level')
     args = parser.parse_args()
 
-    set_logging(args.log, args.log_level)
+    set_logging(_log, args.log, args.log_level)
     _log.debug(f"Command line arguments: {args}")
 
     assemble_anndata(args.input_files, args.output_h5ad, args.output_txt)
