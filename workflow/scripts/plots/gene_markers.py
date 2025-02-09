@@ -26,8 +26,8 @@ def set_logging(log_file, log_level):
 
 def get_gene_markers(adata, celltype, marker_genes):
 
-    gene_markers = adata[adata.obs["celltype"] == celltype, marker_genes['gene_symbol']].to_df()
-    gene_markers.columns = marker_genes['gene_name']
+    gene_markers = adata[adata.obs["celltype"] == celltype, marker_genes.index].to_df()
+    gene_markers.columns = marker_genes['gene']
     gene_markers.index = adata[adata.obs["celltype"] == celltype].obs['treatment']
     
     gene_markers = gene_markers.apply(zscore, axis=0)

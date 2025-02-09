@@ -5,7 +5,6 @@ PLOTS_DIR: "plots/"
 LOG_DIR: "logs/"
 # Logging level
 LOG_LEVEL: "DEBUG"
-CONFIG_DIR: "config/"
 
 CELL_TYPES: ["BJ", "BMMSC", "HCAEC", "HEKn", "HeMn", "HSAEC", "HUVEC", "HVSMC", "Myoblasts", "NHA", "NHO", "PBMCs", "prAD", "WI38"]
 
@@ -26,5 +25,5 @@ NORMALIZATION_DESIGN:
   SenCat: "~celltype + treatment"
   Matts: "sample"
 
-GENE_MARKER_PLOT:
-  SenCat: "SenCat_gene_markers.csv"
+COMMON_SEN_MARKERS:
+  Canonical: "config/Canonical_gene_markers.csv"

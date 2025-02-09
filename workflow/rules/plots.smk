@@ -38,14 +38,14 @@ rule preds_plots:
 
 rule gene_markers:
     input:
-        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
-        csv = lambda wilds: os.path.join(CONFIG_DIR, f"{wilds.gene_markers}_gene_markers.csv")
+        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file_input}.h5ad"),
+        csv = os.path.join(ANALYSIS_DIR, "{counts_file_markers}.common_features.csv"),
     output:
-        plot = os.path.join(PLOTS_DIR, "{counts_file}.{gene_markers}.gene_markers.pdf")
+        plot = os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.pdf")
     conda:
         "../envs/data.yaml"
     log:
-        os.path.join(LOG_DIR, "gene_markers.{counts_file}.{gene_markers}.log")
+        os.path.join(LOG_DIR, "gene_markers.{counts_file_input}.{counts_file_markers}.log")
     shell:
         """
         python workflow/scripts/plots/gene_markers.py \

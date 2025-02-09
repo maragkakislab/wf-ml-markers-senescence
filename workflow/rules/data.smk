@@ -91,3 +91,13 @@ rule normalize_counts:
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}
         """
+
+rule prepare_common_sen_markers:
+    output:
+        os.path.join(ANALYSIS_DIR, "{sen_markers}.common_features.csv")
+    params:
+        markers = lambda wildcards: COMMON_SEN_MARKERS[wildcards.sen_markers]
+    shell:
+        """
+        cp {params.markers} {output}   
+        """
