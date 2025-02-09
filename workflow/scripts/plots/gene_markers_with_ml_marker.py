@@ -28,7 +28,7 @@ def plot_gene_markers(markers_values, celltype, ax):
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Plot gene markers')
+    parser = argparse.ArgumentParser(description='Plot gene markers with ML marker')
     parser.add_argument('--input-h5ad', type=str, help='Path to the AnnData object', required=True)
     parser.add_argument('--gene-markers-csv', type=str, help='Path to the gene markers', required=True)
     parser.add_argument('--ml-marker-csv', type=str, help='Path to the machine learning marker', required=True)
