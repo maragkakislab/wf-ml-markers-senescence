@@ -8,6 +8,16 @@ LOG_LEVEL: "DEBUG"
 
 CELL_TYPES: ["BJ", "BMMSC", "HCAEC", "HEKn", "HeMn", "HSAEC", "HUVEC", "HVSMC", "Myoblasts", "NHA", "NHO", "PBMCs", "prAD", "WI38"]
 
+INPUT_COUNTS:
+  transcriptomics: 
+    file: "Supplementary table 1 transcriptomic results.xlsx"
+    var_columns: 2
+    index_column: "converted_alias"
+  proteomics: 
+    file: "Supplementary table 2 proteomic results.xlsx"
+    var_columns: 3
+    index_column: "Entry"
+
 ENSEMBL_ASSEMBLY_TO_SPECIES_NAME: {
   "hg38": "hsapiens",
   "mm10": "mmusculus",

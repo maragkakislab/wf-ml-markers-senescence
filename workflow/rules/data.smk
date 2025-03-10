@@ -1,3 +1,31 @@
+rule anndata_from_excel:
+    input:
+        counts = lambda wilds: os.path.join(DATA_DIR, config["INPUT_COUNTS"][wilds.counts_type]["file"])
+    output:
+        anndata = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
+        # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
+        # index is Gene_name -> rows with NaNs are removed
+        txt = os.path.join(ANALYSIS_DIR, "{counts_type}.for_SenCID.txt")
+    params:
+        var_columns = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["var_columns"],
+        index_column = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["index_column"],
+        log_level = LOG_LEVEL
+    conda:
+        "../envs/data.yaml"
+    log:
+        os.path.join(LOG_DIR, "{counts_type}.anndata_from_excel.log")
+    shell:
+        """
+        python {workflow.basedir}/scripts/data/anndata_from_excel.py \
+            --input-excel {input.counts:q} \
+            --output-h5ad {output.anndata:q} \
+            --output-txt {output.txt:q} \
+            --var-columns {params.var_columns:q} \
+            --index-column {params.index_column:q} \
+            --log {log:q} \
+            --log-level {LOG_LEVEL} \
+        """
+
 rule assemble_anndata:
     input:
         count_files = expand(os.path.join(DATA_DIR, "3_{cell_type}_all_results_annot.txt"), cell_type=CELL_TYPES)
