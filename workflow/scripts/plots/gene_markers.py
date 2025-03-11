@@ -17,9 +17,9 @@ def plot_gene_markers(markers_values, celltype, ax):
 
     ax.set_title(celltype, fontsize=16)
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=12)
-    ax.set_xlabel('Gene', fontsize=14)
+    ax.set_xlabel('Treatment', fontsize=14)
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=12)
-    ax.set_ylabel('Treatment', fontsize=14)
+    ax.set_ylabel('Gene', fontsize=14)
 
     return ax
 
