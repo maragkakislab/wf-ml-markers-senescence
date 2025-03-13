@@ -13,10 +13,12 @@ INPUT_COUNTS:
     file: "Supplementary table 1 transcriptomic results.xlsx"
     var_columns: 2
     index_column: "converted_alias"
+    gene_name_column: "name"
   proteomics: 
     file: "Supplementary table 2 proteomic results.xlsx"
     var_columns: 3
     index_column: "Entry"
+    gene_name_column: "Gene Names (primary)"
 
 ENSEMBL_ASSEMBLY_TO_SPECIES_NAME: {
   "hg38": "hsapiens",
@@ -32,7 +34,6 @@ SenCID:
   SENCID_DENOISING: 'f'
 
 NORMALIZATION_DESIGN:
-  SenCat: "~celltype + treatment"
   Matts: "sample"
 
 COMMON_SEN_MARKERS:

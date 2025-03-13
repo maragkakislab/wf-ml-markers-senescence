@@ -9,6 +9,7 @@ rule anndata_from_excel:
     params:
         var_columns = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["var_columns"],
         index_column = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["index_column"],
+        gene_name_column = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["gene_name_column"],
         log_level = LOG_LEVEL
     conda:
         "../envs/data.yaml"
@@ -22,6 +23,7 @@ rule anndata_from_excel:
             --output-txt {output.txt:q} \
             --var-columns {params.var_columns:q} \
             --index-column {params.index_column:q} \
+            --gene-name-column {params.gene_name_column:q} \
             --log {log:q} \
             --log-level {LOG_LEVEL} \
         """
@@ -100,13 +102,13 @@ rule anndata_from_txt:
 
 rule normalize_counts:
     input:
-        anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
     output:
-        anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.normalized.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "{counts_type}.normalized.h5ad"),
     params:
-        design = lambda wilds: config["NORMALIZATION_DESIGN"][wilds.counts_file],
+        design = lambda wilds: config["NORMALIZATION_DESIGN"][wilds.counts_type],
     log:
-        os.path.join(LOG_DIR, "{counts_file}.normalize_counts.log")
+        os.path.join(LOG_DIR, "{counts_type}.normalize_counts.log")
     conda:
         "../envs/pydeseq2.yaml"
     shell:
@@ -122,7 +124,7 @@ rule normalize_counts:
 
 rule prepare_common_sen_markers:
     output:
-        os.path.join(ANALYSIS_DIR, "{sen_markers}.common_features.csv")
+        os.path.join(ANALYSIS_DIR, "{sen_markers}.predefined_markers.csv")
     params:
         markers = lambda wildcards: COMMON_SEN_MARKERS[wildcards.sen_markers]
     shell:

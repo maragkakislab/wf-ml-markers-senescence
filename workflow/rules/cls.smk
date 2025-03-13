@@ -1,17 +1,17 @@
 
 rule ml_classifier:
     input:
-        anndata = os.path.join(ANALYSIS_DIR, "SenCat.normalized.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
     output:
-        results_csv = os.path.join(ANALYSIS_DIR, "SenCat.classification_results.csv"),
-        common_features_csv = os.path.join(ANALYSIS_DIR, "SenCat.common_features.csv"),
-        tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "SenCat.tuned_common_features.csv"),
-        tuned_results_csv = os.path.join(ANALYSIS_DIR, "SenCat.tuned_classification_results.csv"),
-        feat_select_plot = os.path.join(PLOTS_DIR, "SenCat.feat_select_plot.pdf"),
+        results_csv = os.path.join(ANALYSIS_DIR, "{counts_type}.classification_results.csv"),
+        common_features_csv = os.path.join(ANALYSIS_DIR, "{counts_type}_common_features.csv"),
+        tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "{counts_type}_tuned_common_features.csv"),
+        tuned_results_csv = os.path.join(ANALYSIS_DIR, "{counts_type}.tuned_classification_results.csv"),
+        feat_select_plot = os.path.join(PLOTS_DIR, "{counts_type}.feat_select_plot.pdf"),
     params:
         importance_threshold = 0
     log:
-        os.path.join(LOG_DIR, "ml_classifier.log")
+        os.path.join(LOG_DIR, "{counts_type}.ml_classifier.log")
     conda:
         "../envs/data.yaml"
     shell:
@@ -31,12 +31,12 @@ rule ml_classifier:
 
 rule marker_classifier:
     input:
-        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file}.normalized.h5ad"),
-        markers = os.path.join(ANALYSIS_DIR, "SenCat.{markers}.csv")
+        h5ad = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
+        markers = os.path.join(ANALYSIS_DIR, "{markers}.csv")
     output:
-        results_csv = os.path.join(ANALYSIS_DIR, "{counts_file}.{markers}_results.csv")
+        results_csv = os.path.join(ANALYSIS_DIR, "{counts_type}.{markers}_results.csv")
     log:
-        os.path.join(LOG_DIR, "{counts_file}.{markers}.marker_classifier.log")
+        os.path.join(LOG_DIR, "{counts_type}.{markers}.marker_classifier.log")
     conda:
         "../envs/data.yaml"
     shell:
@@ -52,8 +52,8 @@ rule marker_classifier:
 
 use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predictions with:
     output:
-        rec = os.path.join(ANALYSIS_DIR, "{counts_file}.SenCID_results.csv")
+        rec = os.path.join(ANALYSIS_DIR, "{counts_type}.SenCID_results.csv")
     input: 
-        txt = os.path.join(ANALYSIS_DIR, "{counts_file}.for_SenCID.txt")
+        txt = os.path.join(ANALYSIS_DIR, "{counts_type}.for_SenCID.txt")
     params:
         denoising = 'f'

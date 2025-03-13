@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--output-txt', type=str, default=None, help='Output txt file with counts.')
     parser.add_argument('--var-columns', type=int, required=True, help='Number of columns with variables.')
     parser.add_argument('--index-column', type=str, required=True, help='Column name with count IDs.')
+    parser.add_argument('--gene-name-column', type=str, required=True, help='Column name with gene names.')
     parser.add_argument('--log', type=str, required=True, help='Log file.')
     parser.add_argument('--log-level', type=str, required=True, help='Log level.')
 
@@ -37,17 +38,19 @@ def main():
     counts.index = df[args.index_column]
     _log.info(f"Set {args.index_column} as index for counts")
 
-    df.set_index(args.index_column, inplace=True)
-    df.drop(columns=var.columns, inplace=True)
 
-    obs = pd.DataFrame(df.columns.values, columns=['obs'])
+    obs = pd.DataFrame(df.columns.values[args.var_columns:], columns=['obs'])
     _log.info(f"Extracted {obs.shape[0]} observations")
     obs['celltype'] = obs['obs'].str.split('_').str[0]
     obs['treatment'] = obs['obs'].str.split('_').str[1]
     obs['replicate'] = obs['obs'].str.split('_').str[2]
+    obs['is_sen'] = obs.apply(lambda x: 0 if x['treatment'] in ['P', 'EV'] else 1, axis=1)
     _log.info(f"Extracted celltype, treatment and replicate from obs")
     obs.set_index('obs', inplace=True)
     _log.info(f"Set obs as index for observations")
+
+    var.rename(columns={args.gene_name_column: 'Gene_name'}, inplace=True)
+    _log.info(f"Renamed {args.gene_name_column} to Gene_name")
 
     adata = sc.AnnData(X=counts.T, obs=obs, var=var)
     _log.info(f"Created AnnData object with shape {adata.X.shape}")
@@ -70,7 +73,14 @@ def main():
     adata.write(args.output_h5ad)
 
     if args.output_txt is not None:
-        counts.to_csv(args.output_txt, sep='\t')
+        adata.var.set_index('Gene_name', inplace=True)
+        adata.var.index = adata.var.index.astype(str)
+        adata.var = adata.var[~adata.var.index.isna()]
+        adata.var_names_make_unique()
+
+        adata_txt = adata.to_df().T
+        adata_txt.columns = adata.obs.index
+        adata_txt.to_csv(args.output_txt, sep='\t')
         _log.info(f"Saved counts to {args.output_txt}")
 
 if __name__ == '__main__':
