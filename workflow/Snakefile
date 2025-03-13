@@ -19,7 +19,6 @@ PLOTS_DIR = config['PLOTS_DIR']
 LOG_DIR = config['LOG_DIR']
 LOG_LEVEL = config['LOG_LEVEL']
 
-CELL_TYPES = config['CELL_TYPES']
 COMMON_SEN_MARKERS = config['COMMON_SEN_MARKERS']
 
 module sencid_workflow:
