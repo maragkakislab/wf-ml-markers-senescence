@@ -6,8 +6,6 @@ LOG_DIR: "logs/"
 # Logging level
 LOG_LEVEL: "DEBUG"
 
-CELL_TYPES: ["BJ", "BMMSC", "HCAEC", "HEKn", "HeMn", "HSAEC", "HUVEC", "HVSMC", "Myoblasts", "NHA", "NHO", "PBMCs", "prAD", "WI38"]
-
 INPUT_COUNTS:
   transcriptomics: 
     file: "Supplementary table 1 transcriptomic results.xlsx"
