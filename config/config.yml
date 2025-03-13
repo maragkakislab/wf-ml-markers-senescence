@@ -8,10 +8,10 @@ LOG_LEVEL: "DEBUG"
 
 INPUT_COUNTS:
   transcriptomics: 
-    file: "Supplementary table 1 transcriptomic results.xlsx"
-    var_columns: 2
-    index_column: "converted_alias"
-    gene_name_column: "name"
+    file: "Supplementary table 1 transcriptomic results.xlsx" # file name, expected to be in the data directory
+    var_columns: 2 # number of columns before the data starts
+    index_column: "converted_alias" # column to use as index
+    gene_name_column: "name" # column to use as gene name
   proteomics: 
     file: "Supplementary table 2 proteomic results.xlsx"
     var_columns: 3
