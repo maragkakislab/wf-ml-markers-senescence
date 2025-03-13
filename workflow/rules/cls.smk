@@ -1,17 +1,17 @@
 
 rule ml_classifier:
     input:
-        anndata = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
     output:
-        results_csv = os.path.join(ANALYSIS_DIR, "{counts_type}.classification_results.csv"),
-        common_features_csv = os.path.join(ANALYSIS_DIR, "{counts_type}_common_features.csv"),
-        tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "{counts_type}_tuned_common_features.csv"),
-        tuned_results_csv = os.path.join(ANALYSIS_DIR, "{counts_type}.tuned_classification_results.csv"),
-        feat_select_plot = os.path.join(PLOTS_DIR, "{counts_type}.feat_select_plot.pdf"),
+        results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.classification_results.csv"),
+        common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_common_features.csv"),
+        tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_tuned_common_features.csv"),
+        tuned_results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.tuned_classification_results.csv"),
+        feat_select_plot = os.path.join(PLOTS_DIR, "{input_counts}.feat_select_plot.pdf"),
     params:
         importance_threshold = 0
     log:
-        os.path.join(LOG_DIR, "{counts_type}.ml_classifier.log")
+        os.path.join(LOG_DIR, "{input_counts}.ml_classifier.log")
     conda:
         "../envs/data.yaml"
     shell:

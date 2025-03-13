@@ -1,20 +1,20 @@
 rule anndata_from_excel:
     input:
-        counts = lambda wilds: os.path.join(DATA_DIR, config["INPUT_COUNTS"][wilds.counts_type]["file"])
+        counts = lambda wilds: os.path.join(DATA_DIR, config["INPUT_COUNTS"][wilds.input_counts]["file"])
     output:
-        anndata = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
+        anndata = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
         # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
         # index is Gene_name -> rows with NaNs are removed
-        txt = os.path.join(ANALYSIS_DIR, "{counts_type}.for_SenCID.txt")
+        txt = os.path.join(ANALYSIS_DIR, "{input_counts}.for_SenCID.txt")
     params:
-        var_columns = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["var_columns"],
-        index_column = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["index_column"],
-        gene_name_column = lambda wilds: config["INPUT_COUNTS"][wilds.counts_type]["gene_name_column"],
+        var_columns = lambda wilds: config["INPUT_COUNTS"][wilds.input_counts]["var_columns"],
+        index_column = lambda wilds: config["INPUT_COUNTS"][wilds.input_counts]["index_column"],
+        gene_name_column = lambda wilds: config["INPUT_COUNTS"][wilds.input_counts]["gene_name_column"],
         log_level = LOG_LEVEL
     conda:
         "../envs/data.yaml"
     log:
-        os.path.join(LOG_DIR, "{counts_type}.anndata_from_excel.log")
+        os.path.join(LOG_DIR, "{input_counts}.anndata_from_excel.log")
     shell:
         """
         python {workflow.basedir}/scripts/data/anndata_from_excel.py \
@@ -28,28 +28,28 @@ rule anndata_from_excel:
             --log-level {LOG_LEVEL} \
         """
 
-rule assemble_anndata:
-    input:
-        count_files = expand(os.path.join(DATA_DIR, "3_{cell_type}_all_results_annot.txt"), cell_type=CELL_TYPES)
-    output:
-        anndata = os.path.join(ANALYSIS_DIR, "SenCat.h5ad"),
-        # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
-        # index is Gene_name -> rows with NaNs are removed
-        txt = os.path.join(ANALYSIS_DIR, "SenCat.for_SenCID.txt")
-    log:
-        os.path.join(LOG_DIR, "assemble_anndata.log")
-    conda:
-        "../envs/data.yaml"
-    shell:
-        """
-        python {workflow.basedir}/scripts/data/assemble_anndata.py \
-            {input.count_files} \
-            --output_h5ad {output.anndata} \
-            --output_txt {output.txt} \
-            --log {log} \
-            --log-level {LOG_LEVEL} \
-            2>&1 | tee {log}
-        """
+# rule assemble_anndata:
+#     input:
+#         count_files = expand(os.path.join(DATA_DIR, "3_{cell_type}_all_results_annot.txt"), cell_type=CELL_TYPES)
+#     output:
+#         anndata = os.path.join(ANALYSIS_DIR, "SenCat.h5ad"),
+#         # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
+#         # index is Gene_name -> rows with NaNs are removed
+#         txt = os.path.join(ANALYSIS_DIR, "SenCat.for_SenCID.txt")
+#     log:
+#         os.path.join(LOG_DIR, "assemble_anndata.log")
+#     conda:
+#         "../envs/data.yaml"
+#     shell:
+#         """
+#         python {workflow.basedir}/scripts/data/assemble_anndata.py \
+#             {input.count_files} \
+#             --output_h5ad {output.anndata} \
+#             --output_txt {output.txt} \
+#             --log {log} \
+#             --log-level {LOG_LEVEL} \
+#             2>&1 | tee {log}
+#         """
 
 rule build_gene_id_table_from_ensembl:
     output:
@@ -124,7 +124,7 @@ rule normalize_counts:
 
 rule prepare_common_sen_markers:
     output:
-        os.path.join(ANALYSIS_DIR, "{sen_markers}.predefined_markers.csv")
+        os.path.join(ANALYSIS_DIR, "{sen_markers}_common_features.csv")
     params:
         markers = lambda wildcards: COMMON_SEN_MARKERS[wildcards.sen_markers]
     shell:
