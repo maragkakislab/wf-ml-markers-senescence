@@ -1,3 +1,9 @@
+def find_path_to_markers(wildcards):
+   if wildcards.counts_file_markers in COMMON_SEN_MARKERS.keys():
+       return os.path.join(DATA_DIR, COMMON_SEN_MARKERS[wildcards.counts_file_markers])
+   
+   return os.path.join(ANALYSIS_DIR, "{counts_file_markers}_common_features.csv")
+
 rule qc_plots:
     input:
         anndata = os.path.join(ANALYSIS_DIR, "{counts_file}.h5ad"),
@@ -46,7 +52,7 @@ rule preds_plots:
 rule gene_markers:
     input:
         h5ad = os.path.join(ANALYSIS_DIR, "{counts_file_input}.h5ad"),
-        csv = os.path.join(ANALYSIS_DIR, "{counts_file_markers}_common_features.csv"),
+        csv = find_path_to_markers, # a function that decides if the input is a predefined file or a generated one
     output:
         plot = os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.pdf")
     conda:
@@ -66,7 +72,7 @@ rule gene_markers:
 rule gene_markers_with_ml_marker:
     input:
         h5ad = os.path.join(ANALYSIS_DIR, "{counts_file_input}.h5ad"),
-        csv = os.path.join(ANALYSIS_DIR, "{counts_file_markers}_common_features.csv"),
+        csv = find_path_to_markers, # a function that decides if the input is a predefined file or a generated one
         ml_csv = os.path.join(ANALYSIS_DIR, "{counts_file_ml_markers}_tuned_common_features.csv"), 
     output:
         plot = os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.{counts_file_ml_markers}_ml_markers.pdf")

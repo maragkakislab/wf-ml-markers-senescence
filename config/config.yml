@@ -35,4 +35,4 @@ NORMALIZATION_DESIGN:
   Matts: "sample"
 
 COMMON_SEN_MARKERS:
-  Canonical: "config/Canonical_gene_markers.csv"
+  Canonical: "Canonical_gene_markers.csv" # file name, expected to be in the data directory
