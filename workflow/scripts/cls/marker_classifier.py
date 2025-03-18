@@ -21,9 +21,19 @@ def set_logging(log_file, log_level):
     _log.addHandler(fh)
 
 def classify_samples(adata, markers):
+    # Check which markers are available in the data
+    available_markers = list(set(markers.index) & set(adata.var_names))
+    missing_markers = list(set(markers.index) - set(adata.var_names))
 
-    features = markers.index
-    coefs = markers['coef'].values
+    _log.info(f"Number of markers provided: {len(markers)}")
+    _log.info(f"Number of markers available in the data: {len(available_markers)}")
+    _log.info(f"Number of markers missing from the data: {len(missing_markers)}")
+    if missing_markers:
+        _log.warning(f"Missing markers: {', '.join(missing_markers)}")
+
+    # Use only available markers
+    features = available_markers
+    coefs = markers.loc[features, 'coef'].values
 
     X = adata[:, features].X
     y = adata.obs['is_sen']
@@ -55,5 +65,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
