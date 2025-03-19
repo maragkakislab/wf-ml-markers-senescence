@@ -43,13 +43,16 @@ def train_test_split(adata, celltype, features, label_col='is_sen', celltype_col
     
     return train.X, train.obs[label_col], test.X, test.obs[label_col]
 
-def train_models_for_celltypes(adata, features, label_col='is_sen', celltype_col='celltype'):
+def train_models_for_celltypes(adata, features, label_col='is_sen', celltype_col='celltype', penalty=None):
     models = {}
     for celltype in adata.obs[celltype_col].unique():
 
         X_train, y_train, _, _ = train_test_split(adata, celltype, features, label_col=label_col, celltype_col=celltype_col)
         
-        model = LogisticRegression(penalty='l1', solver='liblinear')
+        if penalty is None:
+            model = LogisticRegression(solver='liblinear')
+        else:
+            model = LogisticRegression(penalty=penalty, solver='liblinear')
         model.fit(X_train, y_train)
         
         models[celltype] = model
@@ -75,8 +78,8 @@ def select_optimal_num_features(
         label_col='is_sen', 
         celltype_col='celltype', 
         feat_select_plot=None,
-        min_features=500,
-        max_features=2000,
+        min_features=1500,
+        max_features=2500,
         step=50
     ):
     
@@ -152,12 +155,14 @@ def main():
 
     parser = argparse.ArgumentParser(description='Train a logistic regression model for each cell type')
     parser.add_argument('adata_path', type=str)
-    parser.add_argument('--feat_select_plot', type=str, default=None)
     parser.add_argument('--results_csv', type=str, default=None)
     parser.add_argument('--common_features_csv', type=str, default=None)
     parser.add_argument('--importance_threshold', type=float, default=0.01)
     parser.add_argument('--tuned_common_features_csv', type=str, default=None)
     parser.add_argument('--tuned_results_csv', type=str, default=None)
+    parser.add_argument('--allowed_missing_samples', type=int, default=0)
+    parser.add_argument('--num_features', type=int, default=1500)
+    parser.add_argument('--allowed_missing_models', type=int, default=0)
     parser.add_argument('--log', type=str, help='Path to log file', required=True)
     parser.add_argument('--log-level', type=str, help='Log level', default='INFO')
     args = parser.parse_args()
@@ -171,19 +176,20 @@ def main():
     _log.info(f"Do log1p transformation")
     sc.pp.log1p(adata)
 
-    _log.info(f"Feature pre-selection. Keep only genes with counts in each sample")
-    adata = adata[:, adata.X.astype(bool).sum(0) == adata.shape[0]]
+    allowed_missing_samples = min(adata.shape[0], args.allowed_missing_samples)
+    _log.info(f"Feature pre-selection. Keep only genes with counts in at least {adata.shape[0] - allowed_missing_samples} samples")   
+    adata = adata[:, adata.X.astype(bool).sum(0) == adata.shape[0] - allowed_missing_samples]
     _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
 
-    n_features = select_optimal_num_features(adata, feat_select_plot=args.feat_select_plot)
-    features = univariate_feature_selection(adata, n_features=n_features)
-    _log.info(f"Selected {n_features} features")
+    features = univariate_feature_selection(adata, n_features=args.num_features)
+    _log.info(f"Selected {args.num_features} features")
     _log.debug(f"Selected features: {features}")
-    models = train_models_for_celltypes(adata, features)
+    models = train_models_for_celltypes(adata, features, penalty='l1')
     _log.info(f"Trained models for cell types")
     result = evaluate_models_for_celltypes(adata, models, features)
     _log.info(f"Evaluated models for cell types")
-    common_features = get_common_features(adata, models, features, n_models = len(models) - 1, importance_threshold = args.importance_threshold)
+    allowed_missing_models = min(len(models), args.allowed_missing_models)
+    common_features = get_common_features(adata, models, features, n_models = len(models) - allowed_missing_models, importance_threshold = args.importance_threshold)
     _log.info(f"Selected common features")
 
     if args.results_csv is not None:

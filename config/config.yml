@@ -36,3 +36,17 @@ NORMALIZATION_DESIGN:
 
 COMMON_SEN_MARKERS:
   Canonical: "Canonical_gene_markers.csv" # file name, expected to be in the data directory
+
+ML_CLASSIFIER:
+  strict:
+    allowed_missing_samples: 0 # when pre-selecting features, how many samples can be missing the feature for the feature to be included
+    num_features: 1000 # number of features to use when selecting features
+    allowed_missing_models: 0 # when selecting shared important features, how many models can be missing the feature
+  moderate:
+    allowed_missing_samples: 0
+    num_features: 1000
+    allowed_missing_models: 5
+  loose:
+    allowed_missing_samples: 0
+    num_features: 1000
+    allowed_missing_models: 12

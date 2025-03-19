@@ -20,6 +20,7 @@ LOG_DIR = config['LOG_DIR']
 LOG_LEVEL = config['LOG_LEVEL']
 
 COMMON_SEN_MARKERS = config['COMMON_SEN_MARKERS']
+ML_CLASSIFIER = config['ML_CLASSIFIER']
 
 module sencid_workflow:
     snakefile: github("maragkakislab/wf-SenCID", path="workflow/Snakefile", branch="module")
@@ -31,6 +32,13 @@ use rule * from sencid_workflow as sencid_*
 include: "rules/data.smk"
 include: "rules/plots.smk"
 include: "rules/cls.smk"
+
+wildcard_constraints:
+    input_counts = "|".join(["transcriptomics", "proteomics", "Matts", "Matts.normalized"]),
+    counts_type_markers = "|".join(["transcriptomics", "proteomics"]),
+    ml_classifier = "|".join(ML_CLASSIFIER.keys()),
+
+ruleorder: ml_classifier > marker_classifier
 
 rule all:
     input:
@@ -51,31 +59,81 @@ rule all:
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}.SenCID_results.csv"), input_counts=["transcriptomics", "proteomics", "Matts"]),
         
         # classification results
-        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.classification_results.csv"), input_counts=["transcriptomics", "proteomics"]),
-        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.tuned_classification_results.csv"), input_counts=["transcriptomics", "proteomics"]),
-        expand(os.path.join(ANALYSIS_DIR, "{input_counts}_common_features.csv"), input_counts=["transcriptomics", "proteomics"]),
-        expand(os.path.join(ANALYSIS_DIR, "{input_counts}_tuned_common_features.csv"), input_counts=["transcriptomics", "proteomics"]),
-        expand(os.path.join(PLOTS_DIR, "{input_counts}.feat_select_plot.pdf"), input_counts=["transcriptomics", "proteomics"]),
-        
+        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.classification_results.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
+        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.tuned_classification_results.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
+        expand(os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_common_features.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
+        expand(os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_tuned_common_features.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
+
         # classification with markers results
-        expand(os.path.join(ANALYSIS_DIR, "{counts_type}.{markers}_results.csv"), counts_type=["transcriptomics"], markers=["transcriptomics_common_features", "transcriptomics_tuned_common_features"]),
-        expand(os.path.join(ANALYSIS_DIR, "{counts_type}.{markers}_results.csv"), counts_type=["proteomics"], markers=["proteomics_common_features", "proteomics_tuned_common_features"]),
+        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"), 
+            input_counts=["transcriptomics", "Matts.normalized"], 
+            ml_classifier=ML_CLASSIFIER.keys(),  
+            counts_type_markers=["transcriptomics"], 
+            markers_type=["common_features", "tuned_common_features"]),
+        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"), 
+            input_counts=["proteomics"], 
+            ml_classifier=ML_CLASSIFIER.keys(),
+            counts_type_markers=["proteomics"],   
+            markers_type=["common_features", "tuned_common_features"]),
+        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"), 
+            input_counts=["Matts.normalized"], 
+            ml_classifier=ML_CLASSIFIER.keys(),  
+            counts_type_markers=["transcriptomics"], 
+            markers_type=["common_features", "tuned_common_features"]),
 
         # classification results plots
-        expand(os.path.join(PLOTS_DIR, "{counts_type}.{prediction_method}_results.pdf"), counts_type=["transcriptomics", "proteomics"], prediction_method=["classification", "tuned_classification"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_type}.{prediction_method}_results.pdf"), counts_type=["transcriptomics", "Matts.normalized"], prediction_method=["transcriptomics_common_features", "transcriptomics_tuned_common_features"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_type}.{prediction_method}_results.pdf"), counts_type=["proteomics"], prediction_method=["proteomics_common_features", "proteomics_tuned_common_features"]),
-        
+        expand(os.path.join(PLOTS_DIR, "{input_counts}.{prediction_method}.results.pdf"), 
+            input_counts=["transcriptomics", "proteomics"],  
+            prediction_method=[f"{a}.{b}" for a in list(ML_CLASSIFIER.keys()) for b in ["classification", "tuned_classification"]]),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}.{prediction_method}.results.pdf"),
+            input_counts=["transcriptomics", "proteomics", "Matts"], 
+            prediction_method="SenCID"),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.pdf"), 
+            input_counts=["transcriptomics", "Matts.normalized"], 
+            ml_classifier=ML_CLASSIFIER.keys(), 
+            counts_type_markers=["transcriptomics"],  
+            markers_type=["common_features", "tuned_common_features"]),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.pdf"), 
+            input_counts=["proteomics"], 
+            ml_classifier=ML_CLASSIFIER.keys(), 
+            counts_type_markers=["proteomics"], 
+            markers_type=["common_features", "tuned_common_features"]),
+
         # plot gene markers
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.pdf"), counts_file_input=["transcriptomics"], counts_file_markers=["transcriptomics"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.pdf"), counts_file_input=["proteomics"], counts_file_markers=["proteomics"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.pdf"), counts_file_input=["transcriptomics"], counts_file_markers=COMMON_SEN_MARKERS.keys()),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_markers}_{ml_classifier}_gene_markers.pdf"), 
+            input_counts=["transcriptomics"], 
+            counts_file_markers=["transcriptomics"], 
+            ml_classifier=ML_CLASSIFIER.keys()),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_markers}_{ml_classifier}_gene_markers.pdf"), 
+            input_counts=["proteomics"], 
+            counts_file_markers=["proteomics"], 
+            ml_classifier=ML_CLASSIFIER.keys()),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{gene_markers}_gene_markers.pdf"), 
+            input_counts=["transcriptomics"], 
+            gene_markers=COMMON_SEN_MARKERS.keys()),
 
         # plot gene markers with ml markers
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.{counts_file_ml_markers}_ml_markers.pdf"), counts_file_input=["transcriptomics"], counts_file_markers=["transcriptomics"], counts_file_ml_markers=["transcriptomics"]),   
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.{counts_file_ml_markers}_ml_markers.pdf"), counts_file_input=["proteomics"], counts_file_markers=["proteomics"], counts_file_ml_markers=["proteomics"]),   
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.{counts_file_ml_markers}_ml_markers.pdf"), counts_file_input=["transcriptomics"], counts_file_markers=COMMON_SEN_MARKERS.keys(), counts_file_ml_markers=["transcriptomics"]), 
-
+        expand(os.path.join(
+            PLOTS_DIR, 
+            "{input_counts}_counts.{gene_markers}_gene_markers.{ml_markers}_ml_markers.pdf"),
+            input_counts=["transcriptomics"],
+            gene_markers=[f"{a}_{b}" for a in ['transcriptomics'] for b in list(ML_CLASSIFIER.keys())] + list(COMMON_SEN_MARKERS.keys()),
+            ml_markers=[f"{a}_{b}" for a in ["transcriptomics"] for b in ML_CLASSIFIER.keys()]
+        ),
+        expand(os.path.join(
+            PLOTS_DIR, 
+            "{input_counts}_counts.{gene_markers}_gene_markers.{ml_markers}_ml_markers.pdf"),
+            input_counts=["proteomics"],
+            gene_markers=[f"{a}_{b}" for a in ['proteomics'] for b in list(ML_CLASSIFIER.keys())],
+            ml_markers=[f"{a}_{b}" for a in ["proteomics"] for b in ML_CLASSIFIER.keys()]
+        ),
+        
         # plot ml marker
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_ml_markers}_ml_markers.pdf"), counts_file_input=["transcriptomics"], counts_file_ml_markers=["transcriptomics"]),
-        expand(os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_ml_markers}_ml_markers.pdf"), counts_file_input=["proteomics"], counts_file_ml_markers=["proteomics"]),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf"),
+            input_counts=["transcriptomics"], 
+            counts_file_ml_markers=["transcriptomics"], 
+            ml_classifier=ML_CLASSIFIER.keys()),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf"), 
+            input_counts=["proteomics"], 
+            counts_file_ml_markers=["proteomics"], 
+            ml_classifier=ML_CLASSIFIER.keys()),

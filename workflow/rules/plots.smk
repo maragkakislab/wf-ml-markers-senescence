@@ -1,8 +1,8 @@
 def find_path_to_markers(wildcards):
-   if wildcards.counts_file_markers in COMMON_SEN_MARKERS.keys():
-       return os.path.join(DATA_DIR, COMMON_SEN_MARKERS[wildcards.counts_file_markers])
-   
-   return os.path.join(ANALYSIS_DIR, "{counts_file_markers}_common_features.csv")
+    if wildcards.gene_markers in COMMON_SEN_MARKERS.keys():
+        return os.path.join(DATA_DIR, COMMON_SEN_MARKERS[wildcards.gene_markers])
+    else:
+        return os.path.join(ANALYSIS_DIR, "{gene_markers}_tuned_common_features.csv")
 
 rule qc_plots:
     input:
@@ -31,12 +31,32 @@ rule qc_plots:
 
 rule preds_plots:
     input:
-        rec = os.path.join(ANALYSIS_DIR, "{counts_type}.{predictio_method}_results.csv"),
-        h5ad = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
+        rec = os.path.join(ANALYSIS_DIR, "{input_counts}.{predictio_method}_results.csv"),
+        h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
     output:
-        pdf = os.path.join(PLOTS_DIR, "{counts_type}.{predictio_method}_results.pdf")
+        pdf = os.path.join(PLOTS_DIR, "{input_counts}.{predictio_method}.results.pdf")
     log:
-        os.path.join(LOG_DIR, "{counts_type}.{predictio_method}_preds_plots.log")
+        os.path.join(LOG_DIR, "{input_counts}.{predictio_method}_preds_plots.log")
+    conda:
+        "../envs/data.yaml"
+    shell:
+        """
+        python {workflow.basedir}/scripts/plots/predictions.py \
+            --results-csv {input.rec} \
+            --input-h5ad {input.h5ad} \
+            --output-plot {output.pdf} \
+            --log {log} \
+            --log-level {LOG_LEVEL} \
+        """
+
+rule ml_markers_preds_plots:
+    input:
+        rec = os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"),
+        h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
+    output:
+        pdf = os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.pdf")
+    log:
+        os.path.join(LOG_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}_preds_plots.log")
     conda:
         "../envs/data.yaml"
     shell:
@@ -51,14 +71,14 @@ rule preds_plots:
 
 rule gene_markers:
     input:
-        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file_input}.h5ad"),
+        h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
         csv = find_path_to_markers, # a function that decides if the input is a predefined file or a generated one
     output:
-        plot = os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.pdf")
+        plot = os.path.join(PLOTS_DIR, "{input_counts}_counts.{gene_markers}_gene_markers.pdf")
     conda:
         "../envs/data.yaml"
     log:
-        os.path.join(LOG_DIR, "gene_markers.{counts_file_input}.{counts_file_markers}.log")
+        os.path.join(LOG_DIR, "gene_markers.{input_counts}.{gene_markers}.log")
     shell:
         """
         python workflow/scripts/plots/gene_markers.py \
@@ -71,15 +91,18 @@ rule gene_markers:
 
 rule gene_markers_with_ml_marker:
     input:
-        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file_input}.h5ad"),
+        h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
         csv = find_path_to_markers, # a function that decides if the input is a predefined file or a generated one
-        ml_csv = os.path.join(ANALYSIS_DIR, "{counts_file_ml_markers}_tuned_common_features.csv"), 
+        ml_csv = os.path.join(ANALYSIS_DIR, "{ml_markers}_tuned_common_features.csv"), 
     output:
-        plot = os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_markers}_gene_markers.{counts_file_ml_markers}_ml_markers.pdf")
+        plot = os.path.join(
+            PLOTS_DIR, 
+            "{input_counts}_counts.{gene_markers}_gene_markers.{ml_markers}_ml_markers.pdf"
+        )
     conda:
         "../envs/data.yaml"
     log:
-        os.path.join(LOG_DIR, "gene_markers.{counts_file_input}.{counts_file_markers}.{counts_file_ml_markers}.log")
+        os.path.join(LOG_DIR, "gene_markers.{input_counts}.{gene_markers}.{ml_markers}.log")
     shell:
         """
         python workflow/scripts/plots/gene_markers_with_ml_marker.py \
@@ -93,14 +116,14 @@ rule gene_markers_with_ml_marker:
 
 rule ml_marker:
     input:
-        h5ad = os.path.join(ANALYSIS_DIR, "{counts_file_input}.h5ad"),
-        ml_csv = os.path.join(ANALYSIS_DIR, "{counts_file_ml_markers}_tuned_common_features.csv"), 
+        h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
+        ml_csv = os.path.join(ANALYSIS_DIR, "{counts_file_ml_markers}_{ml_classifier}_tuned_common_features.csv"), 
     output:
-        plot = os.path.join(PLOTS_DIR, "{counts_file_input}_counts.{counts_file_ml_markers}_ml_markers.pdf")
+        plot = os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf")
     conda:
         "../envs/data.yaml"
     log:
-        os.path.join(LOG_DIR, "ml_marker.{counts_file_input}.{counts_file_ml_markers}.log")
+        os.path.join(LOG_DIR, "ml_marker.{input_counts}.{counts_file_ml_markers}.{ml_classifier}.log")
     shell:
         """
         python workflow/scripts/plots/ml_marker.py \

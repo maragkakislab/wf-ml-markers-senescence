@@ -3,15 +3,17 @@ rule ml_classifier:
     input:
         anndata = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
     output:
-        results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.classification_results.csv"),
-        common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_common_features.csv"),
-        tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_tuned_common_features.csv"),
-        tuned_results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.tuned_classification_results.csv"),
-        feat_select_plot = os.path.join(PLOTS_DIR, "{input_counts}.feat_select_plot.pdf"),
+        results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.classification_results.csv"),
+        common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_common_features.csv"),
+        tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_tuned_common_features.csv"),
+        tuned_results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.tuned_classification_results.csv"),
     params:
-        importance_threshold = 0
+        importance_threshold = 0,
+        allowed_missing_samples = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_samples"],
+        num_features = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["num_features"],
+        allowed_missing_models = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_models"],
     log:
-        os.path.join(LOG_DIR, "{input_counts}.ml_classifier.log")
+        os.path.join(LOG_DIR, "{input_counts}.{ml_classifier}.ml_classifier.log")
     conda:
         "../envs/data.yaml"
     shell:
@@ -20,10 +22,12 @@ rule ml_classifier:
             {input.anndata} \
             --results_csv {output.results_csv} \
             --common_features_csv {output.common_features_csv} \
-            --feat_select_plot {output.feat_select_plot} \
             --importance_threshold {params.importance_threshold} \
             --tuned_common_features_csv {output.tuned_common_features_csv} \
             --tuned_results_csv {output.tuned_results_csv} \
+            --allowed_missing_samples {params.allowed_missing_samples} \
+            --num_features {params.num_features} \
+            --allowed_missing_models {params.allowed_missing_models} \
             --log {log} \
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}
@@ -31,12 +35,12 @@ rule ml_classifier:
 
 rule marker_classifier:
     input:
-        h5ad = os.path.join(ANALYSIS_DIR, "{counts_type}.h5ad"),
-        markers = os.path.join(ANALYSIS_DIR, "{markers}.csv")
+        h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
+        markers = os.path.join(ANALYSIS_DIR, "{counts_type_markers}_{markers}.csv")
     output:
-        results_csv = os.path.join(ANALYSIS_DIR, "{counts_type}.{markers}_results.csv")
+        results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{markers}.results.csv")
     log:
-        os.path.join(LOG_DIR, "{counts_type}.{markers}.marker_classifier.log")
+        os.path.join(LOG_DIR, "{input_counts}.{counts_type_markers}_{markers}.marker_classifier.log")
     conda:
         "../envs/data.yaml"
     shell:
