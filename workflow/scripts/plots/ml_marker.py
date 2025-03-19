@@ -13,10 +13,24 @@ _log = logging.getLogger("gene_markers_with_ml_marker")
 def compute_ml_marker(adata, ml_marker):
     sc.pp.log1p(adata)
     adata.obs['sample'] = adata.obs.apply(lambda x: f"{x['treatment']}_{x['replicate']}", axis=1)
+    
+    # Check which markers are available in the data
+    available_markers = list(set(ml_marker.index) & set(adata.var_names))
+    missing_markers = list(set(ml_marker.index) - set(adata.var_names))
+
+    _log.info(f"Number of markers provided: {len(ml_marker)}")
+    _log.info(f"Number of markers available in the data: {len(available_markers)}")
+    _log.info(f"Number of markers missing from the data: {len(missing_markers)}")
+    if missing_markers:
+        _log.warning(f"Missing markers: {', '.join(missing_markers)}")
+
+    # Use only available markers
+    ml_marker = ml_marker.loc[available_markers]
+
     ml_markers = pd.DataFrame(index=adata.obs['sample'].unique(), columns=adata.obs["celltype"].unique())
     for i, celltype in enumerate(adata.obs["celltype"].unique()):
 
-        coef_markers =  adata[adata.obs["celltype"] == celltype, ml_marker.index.to_list()].to_df()
+        coef_markers = adata[adata.obs["celltype"] == celltype, ml_marker.index.to_list()].to_df()
         coef_markers.index = adata[adata.obs["celltype"] == celltype].obs['sample']
 
         ml = coef_markers.apply(lambda x: np.sum(np.multiply(x, ml_marker['coef'].values)), axis=1)
