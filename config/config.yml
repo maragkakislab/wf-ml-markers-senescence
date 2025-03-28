@@ -43,23 +43,28 @@ ML_CLASSIFIER:
     quantile: 0.8 # when pre-selecting features, above what quantile of counts should the feature be included
     num_features: 1000 # number of features to use when selecting features
     allowed_missing_models: 0 # when selecting shared important features, how many models can be missing the feature
+    penalty: "l1" # penalty to use for the classifier
   moderate:
     allowed_missing_samples: 0
     quantile: 0.8
     num_features: 1000
     allowed_missing_models: 5
+    penalty: "l1"
   loose:
     allowed_missing_samples: 0
     quantile: 0.8
     num_features: 1000
     allowed_missing_models: 13
+    penalty: "l1"
   loose3000f:
     allowed_missing_samples: 20
     quantile: 0.7
     num_features: 3000
     allowed_missing_models: 13
+    penalty: "None" # Using None penalty will keep the model to assign weights to all features
   loose5000f:
     allowed_missing_samples: 40
     quantile: 0.7
     num_features: 5000
     allowed_missing_models: 13
+    penalty: "None"

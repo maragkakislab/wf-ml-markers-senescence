@@ -13,6 +13,7 @@ rule ml_classifier:
         quantile = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["quantile"],
         num_features = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["num_features"],
         allowed_missing_models = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_models"],
+        penalty = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["penalty"],
     log:
         os.path.join(LOG_DIR, "{input_counts}.{ml_classifier}.ml_classifier.log")
     conda:
@@ -27,6 +28,7 @@ rule ml_classifier:
             --tuned_common_features_csv {output.tuned_common_features_csv} \
             --tuned_results_csv {output.tuned_results_csv} \
             --allowed_missing_samples {params.allowed_missing_samples} \
+            --penalty {params.penalty} \
             --quantile {params.quantile} \
             --num_features {params.num_features} \
             --allowed_missing_models {params.allowed_missing_models} \

@@ -161,6 +161,7 @@ def main():
     parser.add_argument('--tuned_common_features_csv', type=str, default=None)
     parser.add_argument('--tuned_results_csv', type=str, default=None)
     parser.add_argument('--allowed_missing_samples', type=int, default=0)
+    parser.add_argument('--penalty', type=str, default=None)
     parser.add_argument('--quantile', type=float, default=0.8, help='Quantile for filtering genes')
     parser.add_argument('--num_features', type=int, default=1500)
     parser.add_argument('--allowed_missing_models', type=int, default=0)
@@ -190,7 +191,9 @@ def main():
     features = univariate_feature_selection(adata, n_features=args.num_features)
     _log.info(f"Selected {args.num_features} features")
     _log.debug(f"Selected features: {features}")
-    models = train_models_for_celltypes(adata, features, penalty='l1')
+    if args.penalty == "None":
+        args.penalty = None
+    models = train_models_for_celltypes(adata, features, penalty=args.penalty)
     _log.info(f"Trained models for cell types")
     result = evaluate_models_for_celltypes(adata, models, features)
     _log.info(f"Evaluated models for cell types")
