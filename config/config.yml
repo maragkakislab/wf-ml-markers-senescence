@@ -46,7 +46,15 @@ ML_CLASSIFIER:
     allowed_missing_samples: 0
     num_features: 1000
     allowed_missing_models: 5
-  loose:
+  loose1000f:
     allowed_missing_samples: 0
     num_features: 1000
-    allowed_missing_models: 12
+    allowed_missing_models: 13
+  loose3000f:
+    allowed_missing_samples: 0
+    num_features: 3000
+    allowed_missing_models: 13
+  loose5000f:
+    allowed_missing_samples: 0
+    num_features: 5000
+    allowed_missing_models: 13
