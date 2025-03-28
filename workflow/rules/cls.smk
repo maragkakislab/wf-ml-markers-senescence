@@ -10,6 +10,7 @@ rule ml_classifier:
     params:
         importance_threshold = 0,
         allowed_missing_samples = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_samples"],
+        quantile = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["quantile"],
         num_features = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["num_features"],
         allowed_missing_models = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_models"],
     log:
@@ -26,6 +27,7 @@ rule ml_classifier:
             --tuned_common_features_csv {output.tuned_common_features_csv} \
             --tuned_results_csv {output.tuned_results_csv} \
             --allowed_missing_samples {params.allowed_missing_samples} \
+            --quantile {params.quantile} \
             --num_features {params.num_features} \
             --allowed_missing_models {params.allowed_missing_models} \
             --log {log} \

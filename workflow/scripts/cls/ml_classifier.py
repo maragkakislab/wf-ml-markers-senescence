@@ -161,6 +161,7 @@ def main():
     parser.add_argument('--tuned_common_features_csv', type=str, default=None)
     parser.add_argument('--tuned_results_csv', type=str, default=None)
     parser.add_argument('--allowed_missing_samples', type=int, default=0)
+    parser.add_argument('--quantile', type=float, default=0.8, help='Quantile for filtering genes')
     parser.add_argument('--num_features', type=int, default=1500)
     parser.add_argument('--allowed_missing_models', type=int, default=0)
     parser.add_argument('--log', type=str, help='Path to log file', required=True)
@@ -173,13 +174,18 @@ def main():
     adata = sc.read_h5ad(args.adata_path)
     _log.debug(f"Read AnnData object with shape {adata.X.shape}")
 
-    _log.info(f"Do log1p transformation")
-    sc.pp.log1p(adata)
-
     allowed_missing_samples = min(adata.shape[0], args.allowed_missing_samples)
     _log.info(f"Feature pre-selection. Keep only genes with counts in at least {adata.shape[0] - allowed_missing_samples} samples")   
-    adata = adata[:, adata.X.astype(bool).sum(0) == adata.shape[0] - allowed_missing_samples]
+    adata = adata[:, adata.X.astype(bool).sum(0) >= adata.shape[0] - allowed_missing_samples]
     _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
+
+    _log.info(f"Feature pre-selection. Keep only genes with counts above {args.quantile} quantile")
+    adata.var['total_counts'] = adata.X.sum(0)
+    adata = adata[:, adata.var['total_counts'] > adata.var['total_counts'].quantile(args.quantile)]
+    _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
+
+    _log.info(f"Do log1p transformation")
+    sc.pp.log1p(adata)
 
     features = univariate_feature_selection(adata, n_features=args.num_features)
     _log.info(f"Selected {args.num_features} features")
