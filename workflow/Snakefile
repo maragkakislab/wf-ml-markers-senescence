@@ -130,7 +130,7 @@ rule all:
         
         # plot ml marker
         expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf"),
-            input_counts=["transcriptomics"], 
+            input_counts=["transcriptomics", "Matts.normalized"], 
             counts_file_ml_markers=["transcriptomics"], 
             ml_classifier=ML_CLASSIFIER.keys()),
         expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf"), 
