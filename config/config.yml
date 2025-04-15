@@ -32,7 +32,8 @@ SenCID:
   SENCID_DENOISING: 'f'
 
 NORMALIZATION_DESIGN:
-  Matts: "sample"
+  Matt_transcriptomic: "sample"
+  Matt_proteomic: "sample"
 
 COMMON_SEN_MARKERS:
   Canonical: "Canonical_gene_markers.csv" # file name, expected to be in the data directory

@@ -69,10 +69,10 @@ rule build_gene_id_table_from_ensembl:
 
 rule anndata_from_txt:
     output:
-        h5ad = os.path.join(ANALYSIS_DIR,  "Matts.h5ad"),
+        h5ad = os.path.join(ANALYSIS_DIR,  "Matt_transcriptomic.h5ad"),
         # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
         # index is Gene_name -> rows with NaNs are removed
-        txt = os.path.join(ANALYSIS_DIR,  "Matts.for_SenCID.txt")
+        txt = os.path.join(ANALYSIS_DIR,  "Matt_transcriptomic.for_SenCID.txt")
     input:
         counts = os.path.join(DATA_DIR, "23_all_sample_gene_counts.txt"),
         mapping = os.path.join(DATA_DIR, config["ASSEMBLY"], 'gene_ids_' + config["ARCHIVE_NAME"] + '.txt'),
@@ -98,6 +98,30 @@ rule anndata_from_txt:
             --output-txt {output.txt} \
             --log {log} \
             --log-level {LOG_LEVEL} \
+        """
+
+rule anndata_from_csv_proteomic:
+    output:
+        h5ad = os.path.join(ANALYSIS_DIR, "Matt_proteomic.h5ad"),
+    input:
+        csv = os.path.join(DATA_DIR, "protein_abundances_tmt.csv")
+    params:
+        id_column = "accession",
+        counts_columns = ["P10","P11","P12","Q4","Q5","Q6","E1","E2","E3","EM1","EM2","EM3","ET1","ET2","ET3"],
+        log_level = LOG_LEVEL
+    conda:
+        "../envs/data.yaml"
+    log:
+        os.path.join(LOG_DIR, "anndata_from_csv_proteomic.log")
+    shell:
+        """
+        python {workflow.basedir}/scripts/data/anndata_from_csv_proteomic.py \
+            --input-csv {input.csv:q} \
+            --output-h5ad {output.h5ad:q} \
+            --id_column {params.id_column:q} \
+            --counts_columns {params.counts_columns:q} \
+            --log {log} \
+            --log-level {params.log_level} \
         """
 
 rule normalize_counts:
