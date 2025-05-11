@@ -7,13 +7,14 @@ from scipy.stats import zscore
 import logging
 import argparse
 
-from utils import set_logging, get_marker_gene_values
+from utils import set_logging, get_marker_gene_values, get_cmap
 
 _log = logging.getLogger("gene_markers")
 
 def plot_gene_markers(markers_values, celltype, ax):
     
-    sns.heatmap(markers_values.T, cmap='coolwarm', center=0, ax=ax, cbar_kws={'label': 'z-score'})
+    cmap = get_cmap()
+    sns.heatmap(markers_values.T, cmap=cmap, center=0, ax=ax, cbar_kws={'label': 'z-score'})
 
     ax.set_title(celltype, fontsize=16)
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=12)
@@ -54,17 +55,22 @@ def main():
     _log.info(f"Read gene markers with shape {gene_markers.shape}")
     _log.debug(f"Gene markers: {gene_markers}")
 
-    # Select top 10 markers
-    top_gene_markers = select_top_markers(gene_markers)
+    # Select max top 15 markers
+    top_gene_markers = select_top_markers(gene_markers, top_n=15)
     _log.info(f"Selected top {len(top_gene_markers)} gene markers")
     _log.debug(f"Top gene markers: {top_gene_markers}")
 
-    fig, axs = plt.subplots(7, 2, figsize=(15, 20))
+    num_top_markers = len(top_gene_markers)
+    fig, axs = plt.subplots(7, 2, figsize=(15, max(20, 2*num_top_markers)))
 
     for i, celltype in enumerate(adata.obs["celltype"].unique()):
 
         markers_values = get_marker_gene_values(adata, celltype, top_gene_markers)
+        _log.info(f"Got marker values for {celltype} with shape {markers_values.shape}")
+        _log.debug(f"Marker values: {markers_values}")
         markers_values = markers_values.apply(zscore, axis=0)
+        _log.info(f"Z-scored marker values for {celltype} with shape {markers_values.shape}")
+        _log.debug(f"Z-scored marker values: {markers_values}")
         ax = axs[i//2, i%2]
         ax = plot_gene_markers(markers_values, celltype, ax)
 

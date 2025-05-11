@@ -6,7 +6,7 @@ import scanpy as sc
 import logging
 import argparse
 
-from utils import set_logging
+from utils import set_logging, get_cmap
 
 _log = logging.getLogger("ml_marker_plotter")
 
@@ -24,6 +24,12 @@ def compute_ml_marker(adata, ml_marker):
     # Check which markers are available in the data
     available_markers = list(set(ml_marker.index) & set(adata.var_names))
     missing_markers = list(set(ml_marker.index) - set(adata.var_names))
+
+    if not available_markers:
+        _log.warning("No markers available in the data. Using gene names from ml_marker.")
+        available_markers = list(set(ml_marker.gene) & set(adata.var_names))
+        missing_markers = list(set(ml_marker.gene) - set(adata.var_names))
+        ml_marker = ml_marker[ml_marker.gene.isin(available_markers)].set_index('gene')
 
     _log.info(f"Number of markers provided: {len(ml_marker)}")
     _log.info(f"Number of markers available in the data: {len(available_markers)}")
@@ -92,7 +98,8 @@ def main():
         raise
 
     try:
-        sns.heatmap(computed_ml_marker.T, yticklabels=computed_ml_marker.columns, xticklabels=computed_ml_marker.index, cmap='coolwarm', center=0, cbar_kws={'label': 'ML marker'}, ax=ax)
+        cmap = get_cmap()
+        sns.heatmap(computed_ml_marker.T, yticklabels=computed_ml_marker.columns, xticklabels=computed_ml_marker.index, cmap=cmap, center=0, cbar_kws={'label': 'ML marker'}, ax=ax)
         ax.set_xlabel('Sample', fontsize=14)
         ax.set_ylabel('Cell type', fontsize=14)
         ax.set_title('ML marker', fontsize=16)
