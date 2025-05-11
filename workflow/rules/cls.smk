@@ -7,9 +7,11 @@ rule ml_classifier:
         common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_common_features.csv"),
         tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_tuned_common_features.csv"),
         tuned_results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.tuned_classification_results.csv"),
+        pca_plot = os.path.join(PLOTS_DIR, "{input_counts}.{ml_classifier}.pca_plot.png"),
     params:
         importance_threshold = 0,
         allowed_missing_samples = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_samples"],
+        cell_cycle_genes = lambda wildcards: None if config["ML_CLASSIFIER"][wildcards.ml_classifier]["cell_cycle_genes"] == "None" else os.path.join(DATA_DIR, config["ML_CLASSIFIER"][wildcards.ml_classifier]["cell_cycle_genes"]),
         quantile = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["quantile"],
         num_features = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["num_features"],
         allowed_missing_models = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_models"],
@@ -28,10 +30,12 @@ rule ml_classifier:
             --tuned_common_features_csv {output.tuned_common_features_csv} \
             --tuned_results_csv {output.tuned_results_csv} \
             --allowed_missing_samples {params.allowed_missing_samples} \
+            --cell_cycle_genes {params.cell_cycle_genes:q} \
             --penalty {params.penalty} \
             --quantile {params.quantile} \
             --num_features {params.num_features} \
             --allowed_missing_models {params.allowed_missing_models} \
+            --pca_plot {output.pca_plot} \
             --log {log} \
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}

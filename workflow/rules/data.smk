@@ -28,6 +28,60 @@ rule anndata_from_excel:
             --log-level {LOG_LEVEL} \
         """
 
+rule anndata_from_excel_SenCat_HREC_proteomics:
+    input:
+        counts = os.path.join(DATA_DIR, "sencat_combinedexpression.xlsx")
+    output:
+        anndata = os.path.join(ANALYSIS_DIR, "SenCat_HREC_proteomics.h5ad"),
+    params:
+        var_columns = 3,
+        index_column = "Entry",
+        gene_name_column = "Gene Names (primary)",
+        filter_celltype = "HREC",
+        log_level = LOG_LEVEL
+    conda:
+        "../envs/data.yaml"
+    log:
+        os.path.join(LOG_DIR, "anndata_from_excel_SenCat_HREC_proteomics.log")
+    shell:
+        """
+        python {workflow.basedir}/scripts/data/anndata_from_excel.py \
+            --input-excel {input.counts:q} \
+            --output-h5ad {output.anndata:q} \
+            --var-columns {params.var_columns:q} \
+            --index-column {params.index_column:q} \
+            --gene-name-column {params.gene_name_column:q} \
+            --filter-celltype {params.filter_celltype:q} \
+            --log {log:q} \
+            --log-level {LOG_LEVEL} \
+        """
+
+rule anndata_from_tsv_monocyte_proteomics:
+    input:
+        counts = os.path.join(DATA_DIR, "monocyte_proteomics.tsv")
+    output:
+        anndata = os.path.join(ANALYSIS_DIR, "monocyte_proteomics.h5ad"),
+    params:
+        var_columns = 1,
+        index_column = "Protein",
+        gene_name_column = "Protein",
+        log_level = LOG_LEVEL
+    conda:
+        "../envs/data.yaml"
+    log:
+        os.path.join(LOG_DIR, "anndata_from_tsv_monocyte_proteomics.log")
+    shell:
+        """
+        python {workflow.basedir}/scripts/data/anndata_from_tsv.py \
+            --input-tsv {input.counts:q} \
+            --output-h5ad {output.anndata:q} \
+            --var-columns {params.var_columns:q} \
+            --index-column {params.index_column:q} \
+            --gene-name-column {params.gene_name_column:q} \
+            --log {log:q} \
+            --log-level {LOG_LEVEL} \
+        """
+
 # rule assemble_anndata:
 #     input:
 #         count_files = expand(os.path.join(DATA_DIR, "3_{cell_type}_all_results_annot.txt"), cell_type=CELL_TYPES)
@@ -69,10 +123,10 @@ rule build_gene_id_table_from_ensembl:
 
 rule anndata_from_txt:
     output:
-        h5ad = os.path.join(ANALYSIS_DIR,  "Matts.h5ad"),
+        h5ad = os.path.join(ANALYSIS_DIR,  "IMR90_fibroblast_transcriptomics.h5ad"),
         # save as txt file for SenCID - it cannot load h5ad object created by newer versions of scanpy
         # index is Gene_name -> rows with NaNs are removed
-        txt = os.path.join(ANALYSIS_DIR,  "Matts.for_SenCID.txt")
+        txt = os.path.join(ANALYSIS_DIR,  "IMR90_fibroblast_transcriptomics.for_SenCID.txt")
     input:
         counts = os.path.join(DATA_DIR, "23_all_sample_gene_counts.txt"),
         mapping = os.path.join(DATA_DIR, config["ASSEMBLY"], 'gene_ids_' + config["ARCHIVE_NAME"] + '.txt'),
@@ -96,6 +150,32 @@ rule anndata_from_txt:
             --mapping-name-col {params.mapping_name_col:q} \
             --output-h5ad {output.h5ad} \
             --output-txt {output.txt} \
+            --log {log} \
+            --log-level {LOG_LEVEL} \
+        """
+
+rule anndata_from_tsv:
+    output:
+        h5ad = os.path.join(ANALYSIS_DIR,  "IMR90_fibroblast_proteomics_DIA.h5ad"),
+    input:
+        input_tsv = os.path.join(DATA_DIR, "ms1_median_etop_qui_nolabel.tsv"),
+    conda:
+        "../envs/data.yaml"
+    params:
+        var_columns = 1,
+        index_column = "gene",
+        gene_name_column = "gene",
+        log_level = LOG_LEVEL
+    log:
+        os.path.join(LOG_DIR, "anndata_from_tsv.log")
+    shell:
+        """
+        python {workflow.basedir}/scripts/data/anndata_from_tsv.py \
+            --input-tsv {input.input_tsv} \
+            --output-h5ad {output.h5ad} \
+            --var-columns {params.var_columns} \
+            --index-column {params.index_column} \
+            --gene-name-column {params.gene_name_column} \
             --log {log} \
             --log-level {LOG_LEVEL} \
         """

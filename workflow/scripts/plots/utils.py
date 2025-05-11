@@ -1,4 +1,5 @@
 import logging
+from matplotlib.colors import LinearSegmentedColormap
 
 def set_logging(_log, log_file, log_level):
     _log.setLevel(log_level)
@@ -16,7 +17,15 @@ def set_logging(_log, log_file, log_level):
     _log.addHandler(fh)
 
 def get_marker_gene_values(adata, celltype, marker_genes):
+
     gene_markers = adata[adata.obs["celltype"] == celltype, marker_genes.index].to_df()
-    gene_markers.columns = marker_genes['gene']
-    gene_markers.index = adata[adata.obs["celltype"] == celltype].obs['treatment']
+    # map id to names. using `marker_genes` because `gene_markers` are in a different order
+    gene_markers.columns = gene_markers.columns.map(lambda x: marker_genes.loc[x, 'gene'])
+    # sort columns by the order in `marker_genes`
+    gene_markers = gene_markers.reindex(columns=marker_genes['gene'].values)
+    gene_markers.index = adata[gene_markers.index].obs['treatment']
+
     return gene_markers
+
+def get_cmap():
+    return LinearSegmentedColormap.from_list('mycmap', ['#001AFF', 'white', '#FF0000'])

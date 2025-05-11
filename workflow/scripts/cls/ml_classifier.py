@@ -161,10 +161,12 @@ def main():
     parser.add_argument('--tuned_common_features_csv', type=str, default=None)
     parser.add_argument('--tuned_results_csv', type=str, default=None)
     parser.add_argument('--allowed_missing_samples', type=int, default=0)
+    parser.add_argument('--cell_cycle_genes_tsv', type=str, default=None, help='Path to cell cycle genes file')
     parser.add_argument('--penalty', type=str, default=None)
     parser.add_argument('--quantile', type=float, default=0.8, help='Quantile for filtering genes')
     parser.add_argument('--num_features', type=int, default=1500)
     parser.add_argument('--allowed_missing_models', type=int, default=0)
+    parser.add_argument('--pca_plot', type=str, default=None, help='Path to save PCA plot of selected features')
     parser.add_argument('--log', type=str, help='Path to log file', required=True)
     parser.add_argument('--log-level', type=str, help='Log level', default='INFO')
     args = parser.parse_args()
@@ -175,10 +177,46 @@ def main():
     adata = sc.read_h5ad(args.adata_path)
     _log.debug(f"Read AnnData object with shape {adata.X.shape}")
 
+    if args.pca_plot is not None:
+        _log.info(f"Saving PCA plot to {args.pca_plot}")
+        adata_pca = adata.copy()
+
+        sc.pp.normalize_total(adata_pca, target_sum=1e4)
+        sc.pp.log1p(adata_pca)
+        sc.pp.highly_variable_genes(adata_pca, n_top_genes=2000, subset=True)
+
+        sc.pp.pca(adata_pca, n_comps=2, use_highly_variable=False, svd_solver='arpack')
+        ax = sc.pl.pca(adata_pca, color=['celltype', 'is_sen'], show=False, size=50)
+        data_type = args.pca_plot.split('.')[0]
+        plt.title(f'PCA of selected features, {data_type} data', fontsize=16)
+        plt.savefig(args.pca_plot, dpi=300)
+        plt.close()
+        del adata_pca
+
     allowed_missing_samples = min(adata.shape[0], args.allowed_missing_samples)
     _log.info(f"Feature pre-selection. Keep only genes with counts in at least {adata.shape[0] - allowed_missing_samples} samples")   
     adata = adata[:, adata.X.astype(bool).sum(0) >= adata.shape[0] - allowed_missing_samples]
     _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
+
+    if args.cell_cycle_genes_tsv is None or args.cell_cycle_genes_tsv == "None":
+        _log.info(f"No cell cycle genes file provided. Skipping cell cycle genes filtering")
+    else:
+        _log.info(f"Loading cell cycle genes from {args.cell_cycle_genes_tsv}")
+        cell_cycle_genes = pd.read_csv(args.cell_cycle_genes_tsv, sep='\t')
+        _log.debug(f"Cell cycle genes: {cell_cycle_genes.shape}")
+        _log.debug(f"Cell cycle genes: {cell_cycle_genes.head()}")
+
+        cell_cycle_genes["MoleculeName"] = cell_cycle_genes["MoleculeName"].str.split(' ').str[1]
+        # if intersection of cell_cycle_genes["MoleculeName"] and adata.var_names is not empty, then remove them from adata
+        cell_cycle_genes = cell_cycle_genes[cell_cycle_genes["MoleculeName"].isin(adata.var["Gene_name"])]
+        if cell_cycle_genes.shape[0] > 0:
+            _log.info(f"Removing cell cycle genes from adata")
+            _log.debug(f"Cell cycle genes: {cell_cycle_genes.shape}")
+            _log.debug(f"Cell cycle genes: {cell_cycle_genes.head()}")
+            adata = adata[:, ~adata.var["Gene_name"].isin(cell_cycle_genes["MoleculeName"])]
+            _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
+        else:
+            _log.info(f"No cell cycle genes found in adata")
 
     _log.info(f"Feature pre-selection. Keep only genes with counts above {args.quantile} quantile")
     adata.var['total_counts'] = adata.X.sum(0)

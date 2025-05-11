@@ -21,9 +21,17 @@ def set_logging(log_file, log_level):
     _log.addHandler(fh)
 
 def classify_samples(adata, markers):
+
     # Check which markers are available in the data
     available_markers = list(set(markers.index) & set(adata.var_names))
     missing_markers = list(set(markers.index) - set(adata.var_names))
+    features = available_markers
+
+    if not available_markers:
+        _log.warning("No markers available in the data. Using gene names from markers.")
+        available_markers = list(set(markers.gene) & set(adata.var_names))
+        missing_markers = list(set(markers.gene) - set(adata.var_names))
+        features = markers[markers.gene.isin(available_markers)].index
 
     _log.info(f"Number of markers provided: {len(markers)}")
     _log.info(f"Number of markers available in the data: {len(available_markers)}")
@@ -32,10 +40,9 @@ def classify_samples(adata, markers):
         _log.warning(f"Missing markers: {', '.join(missing_markers)}")
 
     # Use only available markers
-    features = available_markers
     coefs = markers.loc[features, 'coef'].values
 
-    X = adata[:, features].X
+    X = adata[:, available_markers].X
     y = adata.obs['is_sen']
     preds = X @ coefs
     return pd.DataFrame({'label': y, 'score': preds})

@@ -5,29 +5,31 @@ import logging
 
 from utils import set_logging
 
-_log = logging.getLogger("anndata_from_excel")
+_log = logging.getLogger("anndata_from_tsv")
 
 def main():
-    parser = argparse.ArgumentParser(description='Convert an Excel file to an AnnData object.')
-    parser.add_argument('--input-excel', type=str, required=True, help='Input Excel file with counts.')
+    parser = argparse.ArgumentParser(description='Convert an TSV file to an AnnData object.')
+    parser.add_argument('--input-tsv', type=str, required=True, help='Input TSV file with counts.')
     parser.add_argument('--output-h5ad', type=str, required=True, help='Output h5ad file.')
-    parser.add_argument('--output-txt', type=str, default=None, help='Output txt file with counts.')
     parser.add_argument('--var-columns', type=int, required=True, help='Number of columns with variables.')
     parser.add_argument('--index-column', type=str, required=True, help='Column name with count IDs.')
     parser.add_argument('--gene-name-column', type=str, required=True, help='Column name with gene names.')
-    parser.add_argument('--filter-celltype', type=str, default=None, help='Celltype to filter.')
     parser.add_argument('--log', type=str, required=True, help='Log file.')
     parser.add_argument('--log-level', type=str, required=True, help='Log level.')
 
     args = parser.parse_args()
     set_logging(_log, args.log, args.log_level)
 
-    df = pd.read_excel(args.input_excel)
-    _log.info(f"Read {df.shape[1]} rows and {df.shape[0]} columns from {args.input_excel}")
+    df = pd.read_csv(args.input_tsv, sep='\t')
+    _log.info(f"Read {df.shape[1]} rows and {df.shape[0]} columns from {args.input_tsv}")
     df.fillna(0, inplace=True)
     # drop rows where index columns is NaN
     df = df.dropna(subset=[args.index_column])
     _log.info(f"Kept {df.shape[0]} rows with non-NaN {args.index_column} values")
+
+    # make values in adata.X integer
+    df.iloc[:, args.var_columns:] = df.iloc[:, args.var_columns:].astype(int)
+    _log.info(f"Converted counts to integer")
 
     var = df.iloc[:, :args.var_columns]
     _log.info(f"Extracted {var.shape[1]} variables: {var.columns}")
@@ -39,14 +41,11 @@ def main():
     counts.index = df[args.index_column]
     _log.info(f"Set {args.index_column} as index for counts")
 
-
     obs = pd.DataFrame(df.columns.values[args.var_columns:], columns=['obs'])
     _log.info(f"Extracted {obs.shape[0]} observations")
-    obs['celltype'] = obs['obs'].str.split('_').str[0]
-    obs['treatment'] = obs['obs'].str.split('_').str[1]
-    obs['replicate'] = obs['obs'].str.split('_').str[2]
-    obs['is_sen'] = obs.apply(lambda x: 0 if x['treatment'] in ['P', 'EV'] else 1, axis=1)
-    _log.info(f"Extracted celltype, treatment and replicate from obs")
+    obs['sample'] = obs['obs']
+    obs['is_sen'] = obs.apply(lambda x: 1 if x['obs'].endswith('Senescent') else 0, axis=1)
+
     obs.set_index('obs', inplace=True)
     _log.info(f"Set obs as index for observations")
 
@@ -70,25 +69,8 @@ def main():
             adata.var[col] = adata.var[col].tolist()
             _log.info(f"Converted {col} to list")
 
-    # filter celltype if specified
-    if args.filter_celltype is not None:
-        adata = adata[adata.obs['celltype'] == args.filter_celltype]
-        _log.info(f"Filtered AnnData object to only include {args.filter_celltype} celltype")
-        _log.info(f"AnnData object shape after filtering: {adata.shape}")
-
     _log.info(f"Saving AnnData object to {args.output_h5ad}")
     adata.write(args.output_h5ad)
 
-    if args.output_txt is not None:
-        adata.var.set_index('Gene_name', inplace=True)
-        adata.var.index = adata.var.index.astype(str)
-        adata.var = adata.var[~adata.var.index.isna()]
-        adata.var_names_make_unique()
-
-        adata_txt = adata.to_df().T
-        adata_txt.columns = adata.obs.index
-        adata_txt.to_csv(args.output_txt, sep='\t')
-        _log.info(f"Saved counts to {args.output_txt}")
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

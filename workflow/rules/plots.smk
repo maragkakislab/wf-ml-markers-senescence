@@ -1,6 +1,8 @@
 def find_path_to_markers(wildcards):
-    if wildcards.gene_markers in COMMON_SEN_MARKERS.keys():
-        return os.path.join(DATA_DIR, COMMON_SEN_MARKERS[wildcards.gene_markers])
+    if wildcards.gene_markers in COMMON_GENE_SEN_MARKERS.keys():
+        return os.path.join(DATA_DIR, COMMON_GENE_SEN_MARKERS[wildcards.gene_markers])
+    elif wildcards.gene_markers in COMMON_PROTEIN_SEN_MARKERS.keys():
+        return os.path.join(DATA_DIR, COMMON_PROTEIN_SEN_MARKERS[wildcards.gene_markers])
     else:
         return os.path.join(ANALYSIS_DIR, "{gene_markers}_tuned_common_features.csv")
 
