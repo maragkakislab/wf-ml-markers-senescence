@@ -24,14 +24,14 @@ def classify_samples(adata, markers):
 
     # Check which markers are available in the data
     available_markers = list(set(markers.index) & set(adata.var_names))
-    missing_markers = list(set(markers.index) - set(adata.var_names))
-    features = available_markers
 
     if not available_markers:
         _log.warning("No markers available in the data. Using gene names from markers.")
-        available_markers = list(set(markers.gene) & set(adata.var_names))
-        missing_markers = list(set(markers.gene) - set(adata.var_names))
-        features = markers[markers.gene.isin(available_markers)].index
+        markers['id'] = markers.index
+        markers.set_index('gene', inplace=True)
+        available_markers = list(set(markers.index) & set(adata.var_names))
+
+    missing_markers = list(set(markers.index) - set(adata.var_names))
 
     _log.info(f"Number of markers provided: {len(markers)}")
     _log.info(f"Number of markers available in the data: {len(available_markers)}")
@@ -40,7 +40,7 @@ def classify_samples(adata, markers):
         _log.warning(f"Missing markers: {', '.join(missing_markers)}")
 
     # Use only available markers
-    coefs = markers.loc[features, 'coef'].values
+    coefs = markers.loc[available_markers, 'coef'].values
 
     X = adata[:, available_markers].X
     y = adata.obs['is_sen']
