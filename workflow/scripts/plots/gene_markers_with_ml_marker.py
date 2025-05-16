@@ -7,7 +7,7 @@ import scanpy as sc
 import logging
 import argparse
 
-from utils import set_logging, get_marker_gene_values, get_cmap
+from utils import set_logging, get_cmap, get_marker_gene_values
 
 _log = logging.getLogger("gene_markers_with_ml_marker")
 
@@ -44,7 +44,7 @@ def main():
     parser = argparse.ArgumentParser(description='Plot gene markers with ML marker')
     parser.add_argument('--input-h5ad', type=str, help='Path to the AnnData object', required=True)
     parser.add_argument('--gene-markers-csv', type=str, help='Path to the gene markers', required=True)
-    parser.add_argument('--ml-marker-csv', type=str, help='Path to the machine learning marker', required=True)
+    parser.add_argument('--results-csv', type=str, help='Path to the classification results', required=True)
     parser.add_argument('--output-plot', type=str, help='Path to save plot', required=True)
     parser.add_argument('--log', type=str, help='Path to log file', required=True)
     parser.add_argument('--log-level', type=str, help='Log level', default='INFO')
@@ -58,9 +58,16 @@ def main():
     gene_markers = pd.read_csv(args.gene_markers_csv, index_col=0)
     _log.info(f"Read gene markers with shape {gene_markers.shape}")
     _log.debug(f"Gene markers: {gene_markers}")
-    ml_markers = pd.read_csv(args.ml_marker_csv, index_col=0)
-    _log.info(f"Read machine learning marker with shape {ml_markers.shape}")
-    _log.debug(f"Machine learning marker: {ml_markers}")
+
+    if args.results_csv.endswith(('.tsv', '.txt')):
+        results = pd.read_csv(args.results_csv, sep='\t', index_col=0)
+    elif args.results_csv.endswith('.csv'):
+        results = pd.read_csv(args.results_csv, index_col=0)
+    else:
+        _log.error('Input file must be a tsv or csv file')
+
+    _log.info(f"Read classification results with a shape {results.shape}")
+    _log.debug(f"Classification results: {results.head()}")
 
     # Select max top 15 gene markers
     top_gene_markers = select_top_markers(gene_markers, top_n=15)
@@ -75,12 +82,11 @@ def main():
         markers_values = markers_values.apply(zscore, axis=0)
         # max_marker_value = np.max(np.abs(markers_values))
 
-        ml_marker_values = get_marker_gene_values(adata, celltype, ml_markers)
-        ml_marker_values = np.log1p(ml_marker_values)
-        markers_values['ML_marker'] = ml_marker_values.apply(
-            lambda x: np.sum(np.multiply(x, ml_markers['coef'].values)), axis=1)
-        # max_ml_value = np.max(np.abs(markers_values['ML_marker']))
-        # markers_values['ML_marker'] = markers_values['ML_marker'] / max_ml_value * max_marker_value
+        markers_values = markers_values.merge(results['score'], left_index=True, right_index=True)
+        markers_values.rename(columns={'score': 'ML_marker'}, inplace=True)
+
+        # set index to treatment
+        markers_values.index = adata[markers_values.index].obs['treatment']
 
         ax = axs[i//2, i%2]
         ax = plot_gene_markers(markers_values, celltype, ax)

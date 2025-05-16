@@ -95,22 +95,22 @@ rule gene_markers_with_ml_marker:
     input:
         h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
         csv = find_path_to_markers, # a function that decides if the input is a predefined file or a generated one
-        ml_csv = os.path.join(ANALYSIS_DIR, "{ml_markers}_tuned_common_features.csv"), 
+        rec = os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"),
     output:
         plot = os.path.join(
             PLOTS_DIR, 
-            "{input_counts}_counts.{gene_markers}_gene_markers.{ml_markers}_ml_markers.pdf"
+            "{input_counts}_counts.{gene_markers}_gene_markers.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"
         )
     conda:
         "../envs/data.yaml"
     log:
-        os.path.join(LOG_DIR, "gene_markers.{input_counts}.{gene_markers}.{ml_markers}.log")
+        os.path.join(LOG_DIR, "gene_markers.{input_counts}.{gene_markers}.{counts_type_markers}_{ml_classifier}_{markers_type}.log")
     shell:
         """
         python workflow/scripts/plots/gene_markers_with_ml_marker.py \
             --input-h5ad {input.h5ad} \
             --gene-markers-csv {input.csv} \
-            --ml-marker-csv {input.ml_csv} \
+            --results-csv {input.rec} \
             --output-plot {output.plot} \
             --log {log} \
             --log-level {LOG_LEVEL} \

@@ -138,17 +138,21 @@ rule all:
         # plot gene markers with ml markers
         expand(os.path.join(
             PLOTS_DIR, 
-            "{input_counts}_counts.{gene_markers}_gene_markers.{ml_markers}_ml_markers.pdf"),
+            "{input_counts}_counts.{gene_markers}_gene_markers.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"),
             input_counts=["transcriptomics"],
             gene_markers=[f"{a}_{b}" for a in ['transcriptomics'] for b in list(ML_CLASSIFIER.keys())] + list(COMMON_GENE_SEN_MARKERS.keys()),
-            ml_markers=[f"{a}_{b}" for a in ["transcriptomics"] for b in ML_CLASSIFIER.keys()]
+            counts_type_markers=["transcriptomics"],
+            ml_classifier=ML_CLASSIFIER.keys(),
+            markers_type=["common_features", "tuned_common_features"],
         ),
         expand(os.path.join(
             PLOTS_DIR, 
-            "{input_counts}_counts.{gene_markers}_gene_markers.{ml_markers}_ml_markers.pdf"),
+            "{input_counts}_counts.{gene_markers}_gene_markers.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"),
             input_counts=["proteomics"],
             gene_markers=[f"{a}_{b}" for a in ['proteomics'] for b in list(ML_CLASSIFIER.keys())] + list(COMMON_PROTEIN_SEN_MARKERS.keys()),
-            ml_markers=[f"{a}_{b}" for a in ["proteomics"] for b in ML_CLASSIFIER.keys()]
+            counts_type_markers=["proteomics"],
+            ml_classifier=ML_CLASSIFIER.keys(),
+            markers_type=["common_features", "tuned_common_features"],
         ),
         
         # plot ml marker

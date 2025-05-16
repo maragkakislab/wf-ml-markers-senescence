@@ -66,6 +66,7 @@ def main():
     for i, celltype in enumerate(adata.obs["celltype"].unique()):
 
         markers_values = get_marker_gene_values(adata, celltype, top_gene_markers)
+        markers_values.index = adata[markers_values.index].obs['treatment']
         _log.info(f"Got marker values for {celltype} with shape {markers_values.shape}")
         _log.debug(f"Marker values: {markers_values}")
         markers_values = markers_values.apply(zscore, axis=0)

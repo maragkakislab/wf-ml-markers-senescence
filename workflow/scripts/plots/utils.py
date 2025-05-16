@@ -23,7 +23,6 @@ def get_marker_gene_values(adata, celltype, marker_genes):
     gene_markers.columns = gene_markers.columns.map(lambda x: marker_genes.loc[x, 'gene'])
     # sort columns by the order in `marker_genes`
     gene_markers = gene_markers.reindex(columns=marker_genes['gene'].values)
-    gene_markers.index = adata[gene_markers.index].obs['treatment']
 
     return gene_markers
 
