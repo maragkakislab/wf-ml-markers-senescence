@@ -119,18 +119,18 @@ rule gene_markers_with_ml_marker:
 rule ml_marker:
     input:
         h5ad = os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"),
-        ml_csv = os.path.join(ANALYSIS_DIR, "{counts_file_ml_markers}_{ml_classifier}_tuned_common_features.csv"), 
+        rec = os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"),
     output:
-        plot = os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf")
+        plot = os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf")
     conda:
         "../envs/data.yaml"
     log:
-        os.path.join(LOG_DIR, "ml_marker.{input_counts}.{counts_file_ml_markers}.{ml_classifier}.log")
+        os.path.join(LOG_DIR, "ml_marker.{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.log")
     shell:
         """
         python workflow/scripts/plots/ml_marker.py \
             --input-h5ad {input.h5ad} \
-            --ml-marker-csv {input.ml_csv} \
+            --results-csv {input.rec} \
             --output-plot {output.plot} \
             --log {log} \
             --log-level {LOG_LEVEL} \

@@ -152,12 +152,14 @@ rule all:
         ),
         
         # plot ml marker
-        expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf"),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"),
             input_counts=["transcriptomics", "IMR90_fibroblast_transcriptomics.normalized"], 
-            counts_file_ml_markers=["transcriptomics"], 
-            ml_classifier=ML_CLASSIFIER.keys()),
-        expand(os.path.join(PLOTS_DIR, "{input_counts}_counts.{counts_file_ml_markers}.{ml_classifier}_ml_markers.pdf"), 
+            counts_type_markers=["transcriptomics"], 
+            ml_classifier=ML_CLASSIFIER.keys(),
+            markers_type=["common_features", "tuned_common_features"]),
+        expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"), 
             input_counts=["proteomics", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
-            counts_file_ml_markers=["proteomics"], 
-            ml_classifier=ML_CLASSIFIER.keys()),
+            counts_type_markers=["proteomics"], 
+            ml_classifier=ML_CLASSIFIER.keys(),
+            markers_type=["common_features", "tuned_common_features"]),
 
