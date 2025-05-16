@@ -73,42 +73,26 @@ def main():
     set_logging(_log, args.log, args.log_level)
     _log.debug(f"Command line arguments: {args}")
 
-    try:
-        adata = sc.read(args.input_h5ad)
-        _log.info(f"Read AnnData object with shape {adata.X.shape}")
-    except Exception as e:
-        _log.error(f"Failed to read AnnData object: {e}")
-        raise
+    adata = sc.read(args.input_h5ad)
+    _log.info(f"Read AnnData object with shape {adata.X.shape}")
 
-    try:
-        ml_markers = pd.read_csv(args.ml_marker_csv, index_col=0)
-        _log.info(f"Read machine learning marker with shape {ml_markers.shape}")
-        _log.debug(f"Machine learning marker: {ml_markers}")
-    except Exception as e:
-        _log.error(f"Failed to read ML marker CSV: {e}")
-        raise
+    ml_markers = pd.read_csv(args.ml_marker_csv, index_col=0)
+    _log.info(f"Read machine learning marker with shape {ml_markers.shape}")
+    _log.debug(f"Machine learning marker: {ml_markers}")
 
     fig, ax = plt.subplots(1, 1, figsize=(15, 5))
-    try:
-        computed_ml_marker = compute_ml_marker(adata, ml_markers)
-        _log.info(f"Computed ML marker with shape {computed_ml_marker.shape}")
-        _log.debug(f"ML marker: {computed_ml_marker}")
-    except Exception as e:
-        _log.error(f"Failed to compute ML marker: {e}")
-        raise
+    computed_ml_marker = compute_ml_marker(adata, ml_markers)
+    _log.info(f"Computed ML marker with shape {computed_ml_marker.shape}")
+    _log.debug(f"ML marker: {computed_ml_marker}")
 
-    try:
-        cmap = get_cmap()
-        sns.heatmap(computed_ml_marker.T, yticklabels=computed_ml_marker.columns, xticklabels=computed_ml_marker.index, cmap=cmap, center=0, cbar_kws={'label': 'ML marker'}, ax=ax)
-        ax.set_xlabel('Sample', fontsize=14)
-        ax.set_ylabel('Cell type', fontsize=14)
-        ax.set_title('ML marker', fontsize=16)
-        plt.tight_layout()
-        fig.savefig(args.output_plot, dpi=300)
-        _log.info(f"Saved plot to {args.output_plot}")
-    except Exception as e:
-        _log.error(f"Failed to plot ML marker: {e}")
-        raise
+    cmap = get_cmap()
+    sns.heatmap(computed_ml_marker.T, yticklabels=computed_ml_marker.columns, xticklabels=computed_ml_marker.index, cmap=cmap, cbar_kws={'label': 'ML marker'}, ax=ax)
+    ax.set_xlabel('Sample', fontsize=14)
+    ax.set_ylabel('Cell type', fontsize=14)
+    ax.set_title('ML marker', fontsize=16)
+    plt.tight_layout()
+    fig.savefig(args.output_plot, dpi=300)
+    _log.info(f"Saved plot to {args.output_plot}")
 
 if __name__ == '__main__':
     main()
