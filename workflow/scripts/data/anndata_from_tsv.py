@@ -14,18 +14,31 @@ def main():
     parser.add_argument('--var-columns', type=int, required=True, help='Number of columns with variables.')
     parser.add_argument('--index-column', type=str, required=True, help='Column name with count IDs.')
     parser.add_argument('--gene-name-column', type=str, required=True, help='Column name with gene names.')
+    parser.add_argument('--ignore-num-columns-at-end', type=int, default=0, help='Number of columns to ignore at the end.')
     parser.add_argument('--log', type=str, required=True, help='Log file.')
     parser.add_argument('--log-level', type=str, required=True, help='Log level.')
 
     args = parser.parse_args()
     set_logging(_log, args.log, args.log_level)
 
-    df = pd.read_csv(args.input_tsv, sep='\t')
+    if args.input_tsv.endswith(('.tsv')):
+        df = pd.read_csv(args.input_tsv, sep='\t')
+    elif args.input_tsv.endswith('.csv'):
+        df = pd.read_csv(args.input_tsv)
+    else:
+        _log.error('Input file must be a tsv or csv file')
+        return
+    
     _log.info(f"Read {df.shape[1]} rows and {df.shape[0]} columns from {args.input_tsv}")
     df.fillna(0, inplace=True)
     # drop rows where index columns is NaN
     df = df.dropna(subset=[args.index_column])
     _log.info(f"Kept {df.shape[0]} rows with non-NaN {args.index_column} values")
+
+    if args.ignore_num_columns_at_end > 0:
+        _log.info(f"Dropping {args.ignore_num_columns_at_end} columns at the end")
+        df = df.iloc[:, :-args.ignore_num_columns_at_end]
+        _log.info(f"Kept {df.shape[1]} columns after dropping {args.ignore_num_columns_at_end} columns at the end")
 
     # make values in adata.X integer
     df.iloc[:, args.var_columns:] = df.iloc[:, args.var_columns:].astype(int)

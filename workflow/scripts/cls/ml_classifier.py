@@ -161,7 +161,7 @@ def main():
     parser.add_argument('--tuned_common_features_csv', type=str, default=None)
     parser.add_argument('--tuned_results_csv', type=str, default=None)
     parser.add_argument('--allowed_missing_samples', type=int, default=0)
-    parser.add_argument('--cell_cycle_genes_tsv', type=str, default=None, help='Path to cell cycle genes file')
+    parser.add_argument('--blacklist_genes_csv', type=str, default=None, help='Path to blacklist genes file')
     parser.add_argument('--penalty', type=str, default=None)
     parser.add_argument('--quantile', type=float, default=0.8, help='Quantile for filtering genes')
     parser.add_argument('--num_features', type=int, default=1500)
@@ -198,22 +198,21 @@ def main():
     adata = adata[:, adata.X.astype(bool).sum(0) >= adata.shape[0] - allowed_missing_samples]
     _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
 
-    if args.cell_cycle_genes_tsv is None or args.cell_cycle_genes_tsv == "None":
+    if args.blacklist_genes_csv is None or args.blacklist_genes_csv == "None":
         _log.info(f"No cell cycle genes file provided. Skipping cell cycle genes filtering")
     else:
-        _log.info(f"Loading cell cycle genes from {args.cell_cycle_genes_tsv}")
-        cell_cycle_genes = pd.read_csv(args.cell_cycle_genes_tsv, sep='\t')
-        _log.debug(f"Cell cycle genes: {cell_cycle_genes.shape}")
-        _log.debug(f"Cell cycle genes: {cell_cycle_genes.head()}")
+        _log.info(f"Loading cell cycle genes from {args.blacklist_genes_csv}")
+        blacklist_genes = pd.read_csv(args.blacklist_genes_csv)
+        _log.debug(f"Cell cycle genes: {blacklist_genes.shape}")
+        _log.debug(f"Cell cycle genes: {blacklist_genes.head()}")
 
-        cell_cycle_genes["MoleculeName"] = cell_cycle_genes["MoleculeName"].str.split(' ').str[1]
-        # if intersection of cell_cycle_genes["MoleculeName"] and adata.var_names is not empty, then remove them from adata
-        cell_cycle_genes = cell_cycle_genes[cell_cycle_genes["MoleculeName"].isin(adata.var["Gene_name"])]
-        if cell_cycle_genes.shape[0] > 0:
+        # if intersection of cell_cycle_genes["Gene"] and adata.var_names is not empty, then remove them from adata
+        blacklist_genes = blacklist_genes[blacklist_genes["Gene"].isin(adata.var["Gene_name"])]
+        if blacklist_genes.shape[0] > 0:
             _log.info(f"Removing cell cycle genes from adata")
-            _log.debug(f"Cell cycle genes: {cell_cycle_genes.shape}")
-            _log.debug(f"Cell cycle genes: {cell_cycle_genes.head()}")
-            adata = adata[:, ~adata.var["Gene_name"].isin(cell_cycle_genes["MoleculeName"])]
+            _log.debug(f"Cell cycle genes: {blacklist_genes.shape}")
+            _log.debug(f"Cell cycle genes: {blacklist_genes.head()}")
+            adata = adata[:, ~adata.var["Gene_name"].isin(blacklist_genes["Gene"])]
             _log.debug(f"Filtered genes. Shape: {adata.X.shape}")
         else:
             _log.info(f"No cell cycle genes found in adata")

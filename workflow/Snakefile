@@ -38,6 +38,7 @@ wildcard_constraints:
     input_counts = "|".join([
         "transcriptomics", "proteomics", 
         "IMR90_fibroblast_transcriptomics", "IMR90_fibroblast_transcriptomics.normalized", 
+        "IMR90_fibroblast_proteomics", "IMR90_fibroblast_proteomics.normalized",
         "IMR90_fibroblast_proteomics_DIA", "IMR90_fibroblast_proteomics_DIA.normalized",
         "monocyte_proteomics", "monocyte_proteomics.normalized",
         "SenCat_HREC_proteomics", 
@@ -55,6 +56,7 @@ rule all:
             input_counts = [
                 "transcriptomics", "proteomics", # transcriptomics and proteomics are the main input data, loaded using anndata_from_excel rule
                 "IMR90_fibroblast_transcriptomics", # IMR90_fibroblast_transcriptomics are data for testing transcriptomics markers, loaded using anndata_from_txt rule
+                "IMR90_fibroblast_proteomics", # IMR90_fibroblast_proteomics are data for testing proteomics markers, loaded using anndata_from_csv rule
                 "IMR90_fibroblast_proteomics_DIA", # IMR90_fibroblast_proteomics_DIA are data for testing proteomics markers, loaded using anndata_from_tsv rule
                 "monocyte_proteomics", # monocyte_proteomics are data for testing proteomics markers, loaded using anndata_from_tsv_monocyte_proteomics rule
                 "SenCat_HREC_proteomics", # SenCat_HREC_proteomics are data for testing proteomics markers, loaded using anndata_from_excel_SenCat_HREC_proteomics rule
@@ -73,6 +75,7 @@ rule all:
             os.path.join(ANALYSIS_DIR, "{input_counts}.normalized.h5ad"), 
             input_counts = [
                 "IMR90_fibroblast_transcriptomics", 
+                "IMR90_fibroblast_proteomics",
                 "IMR90_fibroblast_proteomics_DIA",
                 "monocyte_proteomics",
                 # "SenCat_HREC_proteomics", this should be already normalized
@@ -96,7 +99,7 @@ rule all:
             counts_type_markers=["transcriptomics"], 
             markers_type=["common_features", "tuned_common_features"]),
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"), 
-            input_counts=["proteomics", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
+            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
             ml_classifier=ML_CLASSIFIER.keys(),
             counts_type_markers=["proteomics"],   
             markers_type=["common_features", "tuned_common_features"]),
@@ -114,7 +117,7 @@ rule all:
             counts_type_markers=["transcriptomics"],  
             markers_type=["common_features", "tuned_common_features"]),
         expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.pdf"), 
-            input_counts=["proteomics", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
+            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
             ml_classifier=ML_CLASSIFIER.keys(), 
             counts_type_markers=["proteomics"], 
             markers_type=["common_features", "tuned_common_features"]),
@@ -162,7 +165,7 @@ rule all:
             ml_classifier=ML_CLASSIFIER.keys(),
             markers_type=["common_features", "tuned_common_features"]),
         expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"), 
-            input_counts=["proteomics", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
+            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
             counts_type_markers=["proteomics"], 
             ml_classifier=ML_CLASSIFIER.keys(),
             markers_type=["common_features", "tuned_common_features"]),

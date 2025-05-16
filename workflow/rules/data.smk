@@ -82,6 +82,34 @@ rule anndata_from_tsv_monocyte_proteomics:
             --log-level {LOG_LEVEL} \
         """
 
+rule anndata_from_csv:
+    input:
+        counts = os.path.join(DATA_DIR, "protein_abundances_tmt.csv")
+    output:
+        anndata = os.path.join(ANALYSIS_DIR, "IMR90_fibroblast_proteomics.h5ad"),
+    params:
+        var_columns = 3,
+        index_column = "accession",
+        gene_name_column = "accession",
+        ignore_num_columns_at_end = 1,
+        log_level = LOG_LEVEL
+    conda:
+        "../envs/data.yaml"
+    log:
+        os.path.join(LOG_DIR, "anndata_from_csv_MR90_fibroblast_proteomics.log")
+    shell:
+        """
+        python {workflow.basedir}/scripts/data/anndata_from_tsv.py \
+            --input-tsv {input.counts:q} \
+            --output-h5ad {output.anndata:q} \
+            --var-columns {params.var_columns:q} \
+            --index-column {params.index_column:q} \
+            --gene-name-column {params.gene_name_column:q} \
+            --ignore-num-columns-at-end {params.ignore_num_columns_at_end:q} \
+            --log {log:q} \
+            --log-level {LOG_LEVEL} \
+        """
+
 # rule assemble_anndata:
 #     input:
 #         count_files = expand(os.path.join(DATA_DIR, "3_{cell_type}_all_results_annot.txt"), cell_type=CELL_TYPES)
