@@ -52,14 +52,25 @@ def main():
         _log.warning("No 'celltype' column found in adata.obs. Using 'default_celltype'.")
 
     adata.obs = adata.obs.merge(results['score'], left_index=True, right_index=True)
-    ml_marker = adata.obs.pivot_table(index='celltype', columns='sample', values='score').reindex(columns=adata.obs.index)
+    ml_marker = adata.obs.pivot_table(index='celltype', columns='sample', values='score')
+    if "treatment" in adata.obs.columns:
+        ml_marker.columns = ml_marker.columns.map(lambda x: x.split('_')[0])
 
     fig, ax = plt.subplots(1, 1, figsize=(15, 5))
     _log.info(f"Loaded ML marker with shape {ml_marker.shape}")
     _log.debug(f"ML marker: {ml_marker}")
 
     cmap = get_cmap()
-    sns.heatmap(ml_marker, yticklabels=ml_marker.index, xticklabels=ml_marker.columns, cmap=cmap, cbar_kws={'label': 'ML marker'}, ax=ax)
+    ax.set_facecolor('0.85') # light gray background
+    sns.heatmap(
+        ml_marker, 
+        yticklabels=ml_marker.index, 
+        xticklabels=ml_marker.columns, 
+        cmap=cmap, 
+        linewidth = 0.5,  # space between cells
+        cbar_kws={'label': 'ML marker'}, 
+        ax=ax
+    )
     ax.set_xlabel('Sample', fontsize=14)
     ax.set_ylabel('Cell type', fontsize=14)
     ax.set_title('ML marker', fontsize=16)
