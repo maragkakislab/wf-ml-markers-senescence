@@ -24,10 +24,12 @@ def main():
 
     df = pd.read_excel(args.input_excel)
     _log.info(f"Read {df.shape[1]} rows and {df.shape[0]} columns from {args.input_excel}")
-    df.fillna(0, inplace=True)
     # drop rows where index columns is NaN
     df = df.dropna(subset=[args.index_column])
     _log.info(f"Kept {df.shape[0]} rows with non-NaN {args.index_column} values")
+
+    # fill NaN values with 0
+    df.fillna(0, inplace=True)
 
     var = df.iloc[:, :args.var_columns]
     _log.info(f"Extracted {var.shape[1]} variables: {var.columns}")
