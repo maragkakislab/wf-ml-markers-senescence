@@ -5,6 +5,7 @@ import seaborn as sns
 import scanpy as sc
 import logging
 import argparse
+from matplotlib.colors import LinearSegmentedColormap
 
 from utils import set_logging, get_cmap
 
@@ -60,13 +61,17 @@ def main():
     _log.info(f"Loaded ML marker with shape {ml_marker.shape}")
     _log.debug(f"ML marker: {ml_marker}")
 
-    cmap = get_cmap()
+    cmap = LinearSegmentedColormap.from_list('mycmap', ['white', 'firebrick'])
+    # subset the colormap to avoid white color
+    cmap = LinearSegmentedColormap.from_list('mycmap', cmap(np.linspace(0.05, 1, 256)))
+    #cmap = get_cmap()
     ax.set_facecolor('0.85') # light gray background
     sns.heatmap(
         ml_marker, 
         yticklabels=ml_marker.index, 
         xticklabels=ml_marker.columns, 
         cmap=cmap, 
+        #center=0,  # center the colormap at 0
         linewidth = 0.5,  # space between cells
         cbar_kws={'label': 'ML marker'}, 
         ax=ax
