@@ -50,6 +50,9 @@ ruleorder: ml_classifier > marker_classifier
 
 rule all:
     input:
+        # copy config file to the analysis directory for reproducibility
+        os.path.join(ANALYSIS_DIR, "config.yml"),
+
         # prepare input data
         expand(
             os.path.join(ANALYSIS_DIR, "{input_counts}.h5ad"), 
@@ -97,12 +100,12 @@ rule all:
             input_counts=["transcriptomics", "IMR90_fibroblast_transcriptomics.normalized"], 
             ml_classifier=ML_CLASSIFIER.keys(),  
             counts_type_markers=["transcriptomics"], 
-            markers_type=["common_features", "tuned_common_features"]),
+            markers_type=["tuned_common_features"]),
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"), 
             input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
             ml_classifier=ML_CLASSIFIER.keys(),
             counts_type_markers=["proteomics"],   
-            markers_type=["common_features", "tuned_common_features"]),
+            markers_type=["tuned_common_features"]),
 
         # classification results plots
         expand(os.path.join(PLOTS_DIR, "{input_counts}.{prediction_method}.results.pdf"), 
@@ -146,7 +149,7 @@ rule all:
             gene_markers=[f"{a}_{b}" for a in ['transcriptomics'] for b in list(ML_CLASSIFIER.keys())] + list(COMMON_GENE_SEN_MARKERS.keys()),
             counts_type_markers=["transcriptomics"],
             ml_classifier=ML_CLASSIFIER.keys(),
-            markers_type=["common_features", "tuned_common_features"],
+            markers_type=["tuned_common_features"],
         ),
         expand(os.path.join(
             PLOTS_DIR, 
@@ -155,7 +158,7 @@ rule all:
             gene_markers=[f"{a}_{b}" for a in ['proteomics'] for b in list(ML_CLASSIFIER.keys())] + list(COMMON_PROTEIN_SEN_MARKERS.keys()),
             counts_type_markers=["proteomics"],
             ml_classifier=ML_CLASSIFIER.keys(),
-            markers_type=["common_features", "tuned_common_features"],
+            markers_type=["tuned_common_features"],
         ),
         
         # plot ml marker
@@ -163,10 +166,20 @@ rule all:
             input_counts=["transcriptomics", "IMR90_fibroblast_transcriptomics.normalized"], 
             counts_type_markers=["transcriptomics"], 
             ml_classifier=ML_CLASSIFIER.keys(),
-            markers_type=["common_features", "tuned_common_features"]),
+            markers_type=["tuned_common_features"]),
         expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"), 
             input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
             counts_type_markers=["proteomics"], 
             ml_classifier=ML_CLASSIFIER.keys(),
-            markers_type=["common_features", "tuned_common_features"]),
+            markers_type=["tuned_common_features"]),
 
+# copy config file to the analysis directory
+rule copy_config:
+    input:
+        config_path
+    output:
+        os.path.join(ANALYSIS_DIR, "config.yml")
+    shell:
+        """
+        cp {input} {output}
+        """
