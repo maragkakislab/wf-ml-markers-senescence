@@ -93,7 +93,6 @@ rule all:
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.tuned_classification_results.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_common_features.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_tuned_common_features.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
-        expand(os.path.join(PLOTS_DIR, "{input_counts}.{ml_classifier}.pca_plot.png"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
 
         # classification with markers results
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"), 

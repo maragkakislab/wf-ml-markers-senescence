@@ -7,7 +7,6 @@ rule ml_classifier:
         common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_common_features.csv"),
         tuned_common_features_csv = os.path.join(ANALYSIS_DIR, "{input_counts}_{ml_classifier}_tuned_common_features.csv"),
         tuned_results_csv = os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.tuned_classification_results.csv"),
-        pca_plot = os.path.join(PLOTS_DIR, "{input_counts}.{ml_classifier}.pca_plot.png"),
     params:
         importance_threshold = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["importance_threshold"],
         allowed_missing_samples = lambda wildcards: config["ML_CLASSIFIER"][wildcards.ml_classifier]["allowed_missing_samples"],
@@ -35,7 +34,6 @@ rule ml_classifier:
             --quantile {params.quantile} \
             --num_features {params.num_features} \
             --allowed_missing_models {params.allowed_missing_models} \
-            --pca_plot {output.pca_plot} \
             --log {log} \
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}
