@@ -26,7 +26,13 @@ def main():
     _log.info(f"Read {df.shape[1]} rows and {df.shape[0]} columns from {args.input_excel}")
     # drop rows where index columns is NaN
     df = df.dropna(subset=[args.index_column])
+    # drop rows where index column is empty
+    df = df[df[args.index_column].astype(str).str.strip() != '']
+    _log.info(f"Kept {df.shape[0]} rows with non-empty {args.index_column} values")
     _log.info(f"Kept {df.shape[0]} rows with non-NaN {args.index_column} values")
+    # drop rows where index comlumn is list of semicolon separated values
+    df = df[~df[args.index_column].astype(str).str.contains(';')]
+    _log.info(f"Kept {df.shape[0]} rows with non-semicolon separated {args.index_column} values")
 
     # fill NaN values with 0
     df.fillna(0, inplace=True)
