@@ -24,28 +24,23 @@ def classify_samples(adata, markers):
 
     # Check which markers are available in the data
     available_markers = list(set(markers.index) & set(adata.var_names))
-
-    if not available_markers:
-        _log.warning("No markers available in the data. Using gene names from markers.")
-        markers['id'] = markers.index
-        markers.set_index('gene', inplace=True)
-        available_markers = list(set(markers.index) & set(adata.var_names))
-
     missing_markers = list(set(markers.index) - set(adata.var_names))
 
     _log.info(f"Number of markers provided: {len(markers)}")
     _log.info(f"Number of markers available in the data: {len(available_markers)}")
     _log.info(f"Number of markers missing from the data: {len(missing_markers)}")
-    if missing_markers:
-        _log.warning(f"Missing markers: {', '.join(missing_markers)}")
 
-    # Use only available markers
-    coefs = markers.loc[available_markers, 'coef'].values
+    if available_markers == []:
+        _log.error("No markers are available in the data. Unable to classify samples.")
+        return None
+    else:
+        # Use only available markers
+        coefs = markers.loc[available_markers, 'coef'].values
 
-    X = adata[:, available_markers].X
-    y = adata.obs['is_sen']
-    preds = X @ coefs
-    return pd.DataFrame({'label': y, 'score': preds})
+        X = adata[:, available_markers].X
+        y = adata.obs['is_sen']
+        preds = X @ coefs
+        return pd.DataFrame({'label': y, 'score': preds})
 
 def main():
     parser = argparse.ArgumentParser(description='Classify samples using marker genes')
@@ -68,6 +63,9 @@ def main():
     markers = pd.read_csv(args.markers, index_col=0)
 
     result = classify_samples(adata, markers)
+    if result is None:
+        _log.error("Classification failed due to missing markers.")
+        pd.DataFrame({'error': ['No markers available for classification.']}).to_csv(args.output_results_csv)
     result.to_csv(args.output_results_csv)
 
 if __name__ == '__main__':
