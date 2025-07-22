@@ -1,0 +1,94 @@
+# Directory structure for the project
+DATA_DIR: "data/"
+ANALYSIS_DIR: "analysis/"
+PLOTS_DIR: "plots/"
+LOG_DIR: "logs/"
+# Logging level
+LOG_LEVEL: "DEBUG"
+
+INPUT_COUNTS:
+  transcriptomics: 
+    file: "Supplementary table 1 transcriptomic results.xlsx" # file name, expected to be in the data directory
+    var_columns: 2 # number of columns before the data starts
+    index_column: "converted_alias" # column to use as index
+    gene_name_column: "name" # column to use as gene name
+  proteomics: 
+    file: "Supplementary table 2 proteomic results.xlsx"
+    var_columns: 3
+    index_column: "Entry"
+    gene_name_column: "Gene Names (primary)"
+
+ENSEMBL_ASSEMBLY_TO_SPECIES_NAME: {
+  "hg38": "hsapiens",
+  "mm10": "mmusculus",
+}
+
+ASSEMBLY: "hg38"
+ARCHIVE_NAME: "jul2023.archive"
+
+SenCID:
+  ANALYSIS_DIR: "analysis/"
+  SENCID_SAMPLES: ["counts"]
+  SENCID_DENOISING: 'f'
+
+NORMALIZATION_DESIGN:
+  IMR90_fibroblast_transcriptomics: "sample"
+  IMR90_fibroblast_proteomics: "sample"
+  IMR90_fibroblast_proteomics_DIA: "sample"
+  monocyte_proteomics: "sample"
+
+COMMON_GENE_SEN_MARKERS:
+  Gene_Canonical: "Canonical_gene_markers.csv" # file name, expected to be in the data directory
+
+COMMON_PROTEIN_SEN_MARKERS:
+  Protein_Canonical: "Canonical_protein_markers.csv" # file name, expected to be in the data directory
+
+ML_CLASSIFIER:
+  strict:
+    allowed_missing_samples: 0 # when pre-selecting features, how many samples can be missing the feature for the feature to be included
+    blacklist_genes: None # file name, expected to be in the data directory. Genes to be excluded from the analysis.
+    quantile: 0.8 # when pre-selecting features, above what quantile of counts should the feature be included
+    num_features: 1000 # number of features to use when selecting features
+    allowed_missing_models: 0 # when selecting shared important features, how many models can be missing the feature
+    penalty: "l1" # penalty to use for the classifier
+    importance_threshold: 0.05 # threshold for feature importance to be considered important
+  strict_without_blacklisted_genes:
+    allowed_missing_samples: 0 # when pre-selecting features, how many samples can be missing the feature for the feature to be included
+    blacklist_genes: "blacklist_genes.csv" # file name, expected to be in the data directory. Genes to be excluded from the analysis.
+    quantile: 0.8 # when pre-selecting features, above what quantile of counts should the feature be included
+    num_features: 1000 # number of features to use when selecting features
+    allowed_missing_models: 0 # when selecting shared important features, how many models can be missing the feature
+    penalty: "l1" # penalty to use for the classifier
+    importance_threshold: 0.05 # threshold for feature importance to be considered important
+  # moderate:
+  #   allowed_missing_samples: 0
+  #   cell_cycle_genes: None
+  #   quantile: 0.8
+  #   num_features: 1000
+  #   allowed_missing_models: 5
+  #   penalty: "l1"
+  # moderate_without_cell_cycle_genes:
+  #   allowed_missing_samples: 0
+  #   cell_cycle_genes: "Participating Molecules [R-HSA-1640170].tsv"
+  #   quantile: 0.8
+  #   num_features: 1000
+  #   allowed_missing_models: 5
+  #   penalty: "l1"
+  # loose:
+  #   allowed_missing_samples: 0
+  #   quantile: 0.8
+  #   num_features: 1000
+  #   allowed_missing_models: 13
+  #   penalty: "l1"
+  # loose3000f:
+  #   allowed_missing_samples: 20
+  #   quantile: 0.7
+  #   num_features: 3000
+  #   allowed_missing_models: 13
+  #   penalty: "None" # Using None penalty will keep the model to assign weights to all features
+  # loose5000f:
+  #   allowed_missing_samples: 40
+  #   quantile: 0.7
+  #   num_features: 5000
+  #   allowed_missing_models: 13
+  #   penalty: "None"
