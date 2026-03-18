@@ -41,7 +41,7 @@ python workflow/scripts/data/normalize_counts.py \
 ```
 
 - `INPUT_H5AD` specifies a path to your input `h5ad` file
-- `DESIGN_FACTORS` specifies design factors for DESeq2. Can be either a pandas DataFrame representing a design matrix, or a formulaic formula in the format `x + z` or `~x+z`.
+- `DESIGN_FACTORS` specifies design factors for DESeq2, in the format `x + z` or `~x+z`.
 - `NORMALIZED_H5AD` specifies a path where your normalized data will be saved
 
 ## Get senescence scores
