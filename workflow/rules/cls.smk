@@ -59,11 +59,3 @@ rule marker_classifier:
             --log-level {LOG_LEVEL} \
             2>&1 | tee {log}
         """
-
-use rule get_SenCID_predictions from sencid_workflow as sencid_get_SenCID_predictions with:
-    output:
-        rec = os.path.join(ANALYSIS_DIR, "{counts_type}.SenCID_results.csv")
-    input: 
-        txt = os.path.join(ANALYSIS_DIR, "{counts_type}.for_SenCID.txt")
-    params:
-        denoising = 'f'

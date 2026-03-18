@@ -23,12 +23,6 @@ COMMON_GENE_SEN_MARKERS = config['COMMON_GENE_SEN_MARKERS']
 COMMON_PROTEIN_SEN_MARKERS = config['COMMON_PROTEIN_SEN_MARKERS']
 ML_CLASSIFIER = config['ML_CLASSIFIER']
 
-module sencid_workflow:
-    snakefile: github("maragkakislab/wf-SenCID", path="workflow/Snakefile", branch="module")
-    config: config['SenCID']
-
-use rule * from sencid_workflow as sencid_*
-
 # Processing input counts data for ML applications
 include: "rules/data.smk"
 include: "rules/plots.smk"
@@ -39,8 +33,8 @@ wildcard_constraints:
         "transcriptomics", "proteomics", 
         "IMR90_fibroblast_transcriptomics", "IMR90_fibroblast_transcriptomics.normalized", 
         "IMR90_fibroblast_proteomics", "IMR90_fibroblast_proteomics.normalized",
-        "IMR90_fibroblast_proteomics_DIA", "IMR90_fibroblast_proteomics_DIA.normalized",
-        "monocyte_proteomics", "monocyte_proteomics.normalized",
+        #"IMR90_fibroblast_proteomics_DIA", "IMR90_fibroblast_proteomics_DIA.normalized",
+        #"monocyte_proteomics", "monocyte_proteomics.normalized",
         "SenCat_HREC_proteomics", 
     ]),
     counts_type_markers = "|".join(["transcriptomics", "proteomics"]),
@@ -60,8 +54,6 @@ rule all:
                 "transcriptomics", "proteomics", # transcriptomics and proteomics are the main input data, loaded using anndata_from_excel rule
                 "IMR90_fibroblast_transcriptomics", # IMR90_fibroblast_transcriptomics are data for testing transcriptomics markers, loaded using anndata_from_txt rule
                 "IMR90_fibroblast_proteomics", # IMR90_fibroblast_proteomics are data for testing proteomics markers, loaded using anndata_from_csv rule
-                "IMR90_fibroblast_proteomics_DIA", # IMR90_fibroblast_proteomics_DIA are data for testing proteomics markers, loaded using anndata_from_tsv rule
-                "monocyte_proteomics", # monocyte_proteomics are data for testing proteomics markers, loaded using anndata_from_tsv_monocyte_proteomics rule
                 "SenCat_HREC_proteomics", # SenCat_HREC_proteomics are data for testing proteomics markers, loaded using anndata_from_excel_SenCat_HREC_proteomics rule
             ]
         ),
@@ -79,14 +71,8 @@ rule all:
             input_counts = [
                 "IMR90_fibroblast_transcriptomics", 
                 "IMR90_fibroblast_proteomics",
-                "IMR90_fibroblast_proteomics_DIA",
-                "monocyte_proteomics",
-                # "SenCat_HREC_proteomics", this should be already normalized
             ]
         ),
-        
-        # SenCID results
-        expand(os.path.join(ANALYSIS_DIR, "{input_counts}.SenCID_results.csv"), input_counts=["transcriptomics", "proteomics", "IMR90_fibroblast_transcriptomics"]),
         
         # classification results
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{ml_classifier}.classification_results.csv"), input_counts=["transcriptomics", "proteomics"], ml_classifier=ML_CLASSIFIER.keys()),
@@ -101,7 +87,7 @@ rule all:
             counts_type_markers=["transcriptomics"], 
             markers_type=["tuned_common_features"]),
         expand(os.path.join(ANALYSIS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.csv"), 
-            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
+            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics"], 
             ml_classifier=ML_CLASSIFIER.keys(),
             counts_type_markers=["proteomics"],   
             markers_type=["tuned_common_features"]),
@@ -119,7 +105,7 @@ rule all:
             counts_type_markers=["transcriptomics"],  
             markers_type=["common_features", "tuned_common_features"]),
         expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}.results.pdf"), 
-            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
+            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "SenCat_HREC_proteomics"], 
             ml_classifier=ML_CLASSIFIER.keys(), 
             counts_type_markers=["proteomics"], 
             markers_type=["common_features", "tuned_common_features"]),
@@ -167,7 +153,7 @@ rule all:
             ml_classifier=ML_CLASSIFIER.keys(),
             markers_type=["tuned_common_features"]),
         expand(os.path.join(PLOTS_DIR, "{input_counts}.{counts_type_markers}_{ml_classifier}_{markers_type}_ml_markers.pdf"), 
-            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized", "IMR90_fibroblast_proteomics_DIA.normalized", "SenCat_HREC_proteomics", "monocyte_proteomics.normalized"], 
+            input_counts=["proteomics", "IMR90_fibroblast_proteomics.normalized",  "SenCat_HREC_proteomics"], 
             counts_type_markers=["proteomics"], 
             ml_classifier=ML_CLASSIFIER.keys(),
             markers_type=["tuned_common_features"]),

@@ -23,6 +23,8 @@ def get_marker_gene_values(adata, celltype, marker_genes):
     gene_markers.columns = gene_markers.columns.map(lambda x: marker_genes.loc[x, 'gene'])
     # sort columns by the order in `marker_genes`
     gene_markers = gene_markers.reindex(columns=marker_genes['gene'].values)
+    # if some marker names contain semicolon, split them and keep only the first part
+    gene_markers.columns = gene_markers.columns.map(lambda x: x.split(';')[0] if ';' in x else x)
 
     return gene_markers
 
