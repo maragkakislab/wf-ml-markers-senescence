@@ -15,8 +15,8 @@ The workflow standardizes transcriptomic and proteomic measurements, applies con
 
 ## ML markers
 
-- **Transcriptomics markers**: `analysis/transcriptomics.transcriptomics_loose5000f_tuned_common_features.results.csv`.
-- **Proteomics markers**: `analysis/proteomics.proteomics_loose5000f_tuned_common_features.results.csv`.
+- **Transcriptomics markers**: `analysis/transcriptomics.transcriptomics_loose5000f_tuned_common_features.csv`.
+- **Proteomics markers**: `analysis/proteomics.proteomics_loose5000f_tuned_common_features.csv`.
 
 ## Using ML markers for senescence scoring
 
@@ -53,7 +53,7 @@ python workflow/scripts/cls/marker_classifier.py \
     --output-results-csv OUTPUT_CSV 
 ```
 
-- `PATH_TO_ML_MARKERS` specifies path to ML markers. Use `analysis/transcriptomics.transcriptomics_loose5000f_tuned_common_features.results.csv` for transcriptomics and `analysis/proteomics.proteomics_loose5000f_tuned_common_features.results.csv` for proteomics
+- `PATH_TO_ML_MARKERS` specifies path to ML markers. Use `analysis/transcriptomics.transcriptomics_loose5000f_tuned_common_features.csv` for transcriptomics and `analysis/proteomics.proteomics_loose5000f_tuned_common_features.csv` for proteomics
 - `NORMALIZED_H5AD` specifies path to your normalized `h5ad` data
 - `OUTPUT_CSV` specifies path to output csv file with per-sample `score` values (higher values indicate stronger similarity to the senescence-associated signature).
 
